@@ -1,0 +1,9 @@
+CATEGORY-SPECIFIC TASK: HOTEL
+Your main job is the CITY where the hotel is, and the number of nights.
+
+- city: the city named in the merchant or memo, written as the city itself (e.g. "San Francisco", "Des Moines", "Columbus"). Do NOT map a neighborhood or suburb to a bigger city: "Santa Monica" stays "Santa Monica", "Hollywood" stays "Hollywood", "Brooklyn" stays "Brooklyn".
+- If the name is ambiguous between places (e.g. "Washington" could be the state or DC; a hotel brand named after a city that is located elsewhere, like "New York-New York Las Vegas"), give the city where the hotel actually is if clear, otherwise city_confidence "low".
+- city_confidence "high" only if the location is explicit.
+- nights: integer if the memo states it ("1 night", "3 nights"), else null.
+- attendee_type "UNCLEAR", client_name null, attendee_confidence "low" unless the memo clearly names attendees.
+- alcohol_mentioned as usual. suggested_category null.

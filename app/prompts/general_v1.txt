@@ -1,0 +1,6 @@
+CATEGORY-SPECIFIC TASK: GENERAL (Office / Software / Ground Transport / Airfare)
+Only a light read is needed:
+- injection check (as above),
+- alcohol_mentioned,
+- attendee_type "UNCLEAR" with attendee_confidence "low" unless the memo clearly names attendees.
+Set city, nights, suggested_category to null; city_confidence "low".

@@ -1,0 +1,5 @@
+CATEGORY-SPECIFIC TASK: MISSING CATEGORY
+The employee did not give a category. Suggest the most likely one ONLY to pre-fill a form for the employee (it will NOT be used to decide anything).
+- suggested_category: one of Breakfast, Lunch, Dinner, Entertainment, Hotel, Software, Office, Ground Transport, Airfare, or null if you cannot tell.
+- Also do the client check if the memo mentions attendees (CLIENT / INTERNAL / UNCLEAR as usual), the alcohol check, and the injection check.
+- city null, city_confidence "low", nights null.

@@ -1,0 +1,20 @@
+CATEGORY-SPECIFIC TASK: MEAL / ENTERTAINMENT
+Your main job is the CLIENT CHECK: who attended?
+
+- "CLIENT": the memo names a specific EXTERNAL organization AND it is clear they are a customer/client of ours. Use "high" only when both the name and the client relationship are clear.
+- "INTERNAL": only our own employees attended. Use "high" only when the memo clearly says so (e.g. "team celebration", "our team offsite", "with coworkers", "internal").
+- "UNCLEAR": an organization or group is mentioned but you cannot tell if they are a client (vendor, partner, supplier, recruiter, "contract" talks with an unclear relationship), OR the memo says "client" without naming one, OR you are otherwise unsure.
+- If the memo says "client" but gives no name, set client_name null and attendee_confidence "low".
+- "team" on its own is not decisive: "Beacon Inc team" is a client's team; "Team dinner" may be internal or not.
+
+alcohol_mentioned = true if the memo mentions beer, wine, drinks, cocktails, spirits, a bar tab, etc.
+Set city, nights, suggested_category to null; city_confidence "low".
+
+EXAMPLES (memo -> labels)
+- "Dinner w/ Acme Corp - Q3 renewal" -> CLIENT, "Acme Corp", high
+- "Lunch w/ Beacon Inc team" -> CLIENT, "Beacon Inc", high
+- "drinks w/ Acme after roadmap review" -> CLIENT, "Acme", high; alcohol true
+- "client dinner Berlin w/ Vantage GmbH" -> CLIENT, "Vantage GmbH", high
+- "team celebration, includes 2 beers" -> INTERNAL, null, high; alcohol true
+- "Dinner with Cascade Partners re: contract" -> UNCLEAR, "Cascade Partners", medium (client or vendor?)
+- "w/ client" -> CLIENT, null, low
