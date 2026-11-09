@@ -7,7 +7,7 @@ two forms that always agree:
   * question["fields"] - drives the portal answer form
 """
 
-from . import config
+from . import config, normalize
 
 ATTENDEE_OPTIONS = ["Internal only (our employees)", "Client", "Vendor / partner / other"]
 _ATTENDEE_MAP = {ATTENDEE_OPTIONS[0]: "INTERNAL", ATTENDEE_OPTIONS[1]: "CLIENT", ATTENDEE_OPTIONS[2]: "VENDOR"}
@@ -18,11 +18,11 @@ ALCOHOL_OPTIONS = ["Yes, it included alcohol", "No alcohol"]
 def _describe(exp, facts):
     amt = facts.get("amount")
     cur = facts.get("currency") or ""
-    money = (f"${amt:,.2f}" if cur == "USD" else f"{amt:,.2f} {cur}") if amt is not None else "your"
+    money = (f"${amt:,.2f}" if cur == "USD" else f"{amt:,.2f} {cur}") if amt is not None else ""
     cat = (facts.get("category") or "expense").lower()
     merch = f" at {exp.get('merchant')}" if exp.get("merchant") else ""
     when = f" on {facts['date']}" if facts.get("date") else ""
-    return f"{money} {cat}{merch}{when}"
+    return f"{money} {cat}{merch}{when}".strip()
 
 
 def build(exp, facts, gaps):
@@ -43,7 +43,7 @@ def build(exp, facts, gaps):
             asks.append("What category is this expense (e.g. Lunch, Dinner, Office, Hotel, Software)? "
                         "If it was a meal or entertainment, tell us whether it was internal or with a client, "
                         "and name the client company.")
-            if not exp.get("approval_code"):
+            if not normalize.approval_code_ok(exp.get("approval_code")):
                 fields.append({"name": "approval_code", "type": "text", "optional": True})
                 asks.append("If Software, include the approval code.")
             if not exp.get("city"):
@@ -66,17 +66,17 @@ def build(exp, facts, gaps):
             asks.append(g["reason"])
         elif gid == "approval_code":
             fields.append({"name": "approval_code", "type": "text", "label": "Software approval code"})
-            asks.append(f"Please provide the software approval code. {g['reason']}")
+            asks.append("Please provide the software approval code.")
         elif gid == "city":
             fields.append({"name": "city", "type": "choice_or_text", "options": TIER1_CHOICES + ["Other (type it)"],
                            "label": "City where the hotel is"})
-            asks.append(f"Which city was the hotel in? {g['reason']}")
+            asks.append("Which city was the hotel in?")
         elif gid == "nights":
             fields.append({"name": "nights", "type": "number", "label": "Number of nights"})
-            asks.append(f"How many nights does this hotel charge cover? {g['reason']}")
+            asks.append("Exactly how many nights does this charge cover?")
         elif gid == "amount_usd":
             fields.append({"name": "amount_usd", "type": "number", "label": "Amount in USD (from your card statement)"})
-            asks.append(f"What USD amount was charged on your card? We {g['reason']}.")
+            asks.append("What USD amount appears on your card statement?")
         elif gid == "amount_fix":
             fields.append({"name": "amount_corrected", "type": "text", "label": "Amount (e.g. 42.50 or €42.50)"})
             asks.append(f"Please correct the amount ({g['reason']}).")

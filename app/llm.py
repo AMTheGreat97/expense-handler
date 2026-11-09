@@ -15,7 +15,7 @@ from . import config
 PROMPT_VERSION = "v1"
 
 SCHEMA = {
-    "attendee_type": {"CLIENT", "INTERNAL", "UNCLEAR"},
+    "attendee_type": {"CLIENT", "INTERNAL", "VENDOR", "UNCLEAR"},
     "client_name": "str_or_null",
     "attendee_confidence": {"high", "medium", "low"},
     "attendee_evidence": "str_or_null",

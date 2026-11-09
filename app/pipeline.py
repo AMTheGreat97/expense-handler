@@ -28,7 +28,7 @@ class Pipeline:
         payload, _ = engine.decide(exp, self.llm, self.fx, use_llm=False)
         return payload
 
-    def process(self, expense, source):
+    def process(self, expense, source, *, after_employee_reply=False):
         exp = dict(expense)
         if not exp.get("id"):
             exp["id"] = self.store.portal_id() if source == "portal" else None
@@ -36,6 +36,12 @@ class Pipeline:
             self.store.upsert_expense(exp, source)
 
         payload, trace = engine.decide(exp, self.llm, self.fx)
+        if after_employee_reply and payload.get("routed_to") == "employee":
+            payload["routed_to"] = "finance"
+            payload["question"] = {"text": "Finance review required after the employee's reply. "
+                                   + payload["reason"], "fields": []}
+            payload["rules_fired"].append({"rule": "ONE_EMPLOYEE_CONTACT", "result": "gap",
+                                           "detail": "Unresolved after one reply. Assigned to Finance."})
         if not exp.get("id"):
             return payload  # can't version/POST an expense with no id; question asks for it
 
@@ -58,9 +64,11 @@ class Pipeline:
         if not row:
             raise KeyError(expense_id)
         latest = self.store.latest_decision(expense_id)
+        if not latest or latest["payload"].get("routed_to") != "employee":
+            raise ValueError("There is no current employee question for this expense.")
         self.store.record_answer(expense_id, latest["version"], answers)
         merged = questions.apply_answers(row["expense"], answers)
-        return self.process(merged, row["source"])
+        return self.process(merged, row["source"], after_employee_reply=True)
 
     def trace_md(self, expense_id, version=None):
         hist = self.store.history(expense_id)

@@ -5,6 +5,7 @@ success, so the rules engine can turn parse errors into flag questions.
 """
 
 import re
+import math
 from datetime import date, datetime
 
 from . import config
@@ -49,7 +50,7 @@ def parse_amount(raw):
             return None, f"amount could not be read: {raw!r}"
         amount = float(text.replace(",", ""))
         currency = currency or "USD"
-    if amount <= 0:
+    if not math.isfinite(amount) or round(amount, 2) <= 0:
         return None, f"amount must be positive: {raw!r}"
     return (round(amount, 2), currency), None
 

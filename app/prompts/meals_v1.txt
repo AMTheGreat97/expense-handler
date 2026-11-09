@@ -4,6 +4,7 @@ Your main job is the CLIENT CHECK: who attended?
 
 - "CLIENT": the memo names a specific EXTERNAL organization AND it is clear they are a customer/client of ours. Use "high" only when both the name and the client relationship are clear.
 - "INTERNAL": only our own employees attended. Use "high" only when the memo clearly says so (e.g. "team celebration", "our team offsite", "with coworkers", "internal").
+- "VENDOR": the memo explicitly describes a vendor or supplier attending with employees, with no customer attendance indicated. Quote the vendor wording. A company name or contract discussion alone leaves the relationship unclear. If a named external customer also attended, assess the client evidence separately.
 - "UNCLEAR": an organization or group is mentioned but you cannot tell if they are a client (vendor, partner, supplier, recruiter, "contract" talks with an unclear relationship), OR the memo says "client" without naming one, OR you are otherwise unsure.
 - If the memo says "client" but gives no name, set client_name null and attendee_confidence "low".
 - "team" on its own is not decisive: "Beacon Inc team" is a client's team; "Team dinner" may be internal or not.

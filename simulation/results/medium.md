@@ -44,9 +44,11 @@ Expected after a complete reply: **approve**.
 
 **Question to employee:**
 
-To finish reviewing expense M01 (your office at Market Street on 2026-06-17), we need one thing: Please correct the amount (amount must be positive: 0).
+To finish reviewing expense M01 (office at Market Street on 2026-06-17), we need one thing: Please correct the amount (amount must be positive: 0).
 
 **Fields offered** amount_corrected, employee_note
+
+**Portal reply validation** Accepted the corresponding form inputs.
 
 **Employee actually returned** {"amount_corrected": "$28.00"}
 
@@ -111,9 +113,11 @@ Expected after a complete reply: **approve**.
 
 **Question to employee:**
 
-To finish reviewing expense M02 (your office at Market Street on 2026-06-17), we need one thing: Please correct the amount (amount must be positive: -12).
+To finish reviewing expense M02 (office at Market Street on 2026-06-17), we need one thing: Please correct the amount (amount must be positive: -12).
 
 **Fields offered** amount_corrected, employee_note
+
+**Portal reply validation** Accepted the corresponding form inputs.
 
 **Employee actually returned** {"amount_corrected": "$28.00"}
 
@@ -178,9 +182,11 @@ Expected after a complete reply: **approve**.
 
 **Question to employee:**
 
-To finish reviewing expense M03 (your office at Market Street on 2026-06-17), we need one thing: Please correct the amount (amount is missing).
+To finish reviewing expense M03 (office at Market Street on 2026-06-17), we need one thing: Please correct the amount (amount is missing).
 
 **Fields offered** amount_corrected, employee_note
+
+**Portal reply validation** Accepted the corresponding form inputs.
 
 **Employee actually returned** {"amount_corrected": "$28.00"}
 
@@ -245,9 +251,11 @@ Expected after a complete reply: **approve**.
 
 **Question to employee:**
 
-To finish reviewing expense M04 (your office at Market Street on 2026-06-17), we need one thing: Please correct the amount (amount could not be read: 'about 42').
+To finish reviewing expense M04 (office at Market Street on 2026-06-17), we need one thing: Please correct the amount (amount could not be read: 'about 42').
 
 **Fields offered** amount_corrected, employee_note
+
+**Portal reply validation** Accepted the corresponding form inputs.
 
 **Employee actually returned** {"amount_corrected": "$28.00"}
 
@@ -312,9 +320,11 @@ Expected after a complete reply: **approve**.
 
 **Question to employee:**
 
-To finish reviewing expense M05 (your office at Market Street on 2026-06-17), we need one thing: Please correct the amount (amount could not be read: '26 or 29').
+To finish reviewing expense M05 (office at Market Street on 2026-06-17), we need one thing: Please correct the amount (amount could not be read: '26 or 29').
 
 **Fields offered** amount_corrected, employee_note
+
+**Portal reply validation** Accepted the corresponding form inputs.
 
 **Employee actually returned** {"amount_corrected": "$28.00"}
 
@@ -379,9 +389,11 @@ Expected after a complete reply: **approve**.
 
 **Question to employee:**
 
-To finish reviewing expense M06 (your office at Market Street on 2026-06-17), we need one thing: Please correct the amount (amount could not be read: '28,00').
+To finish reviewing expense M06 (office at Market Street on 2026-06-17), we need one thing: Please correct the amount (amount could not be read: '28,00').
 
 **Fields offered** amount_corrected, employee_note
+
+**Portal reply validation** Accepted the corresponding form inputs.
 
 **Employee actually returned** {"amount_corrected": "$28.00"}
 
@@ -446,9 +458,11 @@ Expected after a complete reply: **approve**.
 
 **Question to employee:**
 
-To finish reviewing expense M07 (your office at Market Street on 2026-06-17), we need one thing: Please correct the amount (amount is not a number: True).
+To finish reviewing expense M07 (office at Market Street on 2026-06-17), we need one thing: Please correct the amount (amount is not a number: True).
 
 **Fields offered** amount_corrected, employee_note
+
+**Portal reply validation** Accepted the corresponding form inputs.
 
 **Employee actually returned** {"amount_corrected": "$28.00"}
 
@@ -513,9 +527,11 @@ Expected after a complete reply: **approve**.
 
 **Question to employee:**
 
-To finish reviewing expense M08 (your office at Market Street on 2026-06-17), we need one thing: Please correct the amount (amount has conflicting currencies: '€35 USD').
+To finish reviewing expense M08 (office at Market Street on 2026-06-17), we need one thing: Please correct the amount (amount has conflicting currencies: '€35 USD').
 
 **Fields offered** amount_corrected, employee_note
+
+**Portal reply validation** Accepted the corresponding form inputs.
 
 **Employee actually returned** {"amount_corrected": "$28.00"}
 
@@ -585,6 +601,8 @@ To finish reviewing expense M09 ($18.00 office at Market Street), we need one th
 
 **Fields offered** date_corrected, employee_note
 
+**Portal reply validation** Accepted the corresponding form inputs.
+
 **Employee actually returned** {"date_corrected": "2026-06-17"}
 
 ### M09 · Alex Rivera · 2026-06-17 (Wed) · Office · 18.00 USD
@@ -652,6 +670,8 @@ Expected after a complete reply: **approve**.
 To finish reviewing expense M10 ($18.00 office at Market Street), we need one thing: Please correct the date (date could not be read: '31/12/2025').
 
 **Fields offered** date_corrected, employee_note
+
+**Portal reply validation** Accepted the corresponding form inputs.
 
 **Employee actually returned** {"date_corrected": "2026-06-17"}
 
@@ -721,6 +741,8 @@ To finish reviewing expense M11 ($18.00 office at Market Street), we need one th
 
 **Fields offered** date_corrected, employee_note
 
+**Portal reply validation** Accepted the corresponding form inputs.
+
 **Employee actually returned** {"date_corrected": "2026-06-17"}
 
 ### M11 · Alex Rivera · 2026-06-17 (Wed) · Office · 18.00 USD
@@ -788,6 +810,8 @@ Expected after a complete reply: **approve**.
 To finish reviewing expense M12 ($18.00 office at Market Street), we need one thing: Please correct the date (date is missing).
 
 **Fields offered** date_corrected, employee_note
+
+**Portal reply validation** Accepted the corresponding form inputs.
 
 **Employee actually returned** {"date_corrected": "2026-06-17"}
 
@@ -879,7 +903,7 @@ Input
 **Client check:** client (source: memo_llm) — CLIENT/high 'Juniper Labs' (evidence: 'Dinner with customer Juniper Labs')
 **Fact sources:** attendee=memo_llm
 **LLM:** stub · prompt meals_v1.txt
-**LLM reasoning:** 
+**LLM reasoning:**
 
 ---
 
@@ -916,7 +940,7 @@ Input
 **Client check:** client (source: memo_llm) — CLIENT/high 'Juniper Labs' (evidence: 'Dinner with customer Juniper Labs')
 **Fact sources:** attendee=memo_llm
 **LLM:** stub · prompt meals_v1.txt
-**LLM reasoning:** 
+**LLM reasoning:**
 
 ---
 
@@ -954,7 +978,7 @@ Input
 **Client check:** client (source: memo_llm) — CLIENT/high 'Juniper Labs' (evidence: 'Dinner with customer Juniper Labs')
 **Fact sources:** attendee=memo_llm
 **LLM:** stub · prompt meals_v1.txt
-**LLM reasoning:** 
+**LLM reasoning:**
 
 ---
 
@@ -1000,13 +1024,15 @@ Expected after a complete reply: **approve**.
 **Client check:** client (source: memo_llm) — CLIENT/high 'Juniper Labs' (evidence: 'Dinner with customer Juniper Labs')
 **Fact sources:** attendee=memo_llm
 **LLM:** stub · prompt meals_v1.txt
-**LLM reasoning:** 
+**LLM reasoning:**
 
 **Question to employee:**
 
 To finish reviewing expense M17 ($145.00 dinner at Market Street on 2026-06-17), we need one thing: Receipts are required for any expense over $25.00. Please attach it.
 
 **Fields offered** receipt, employee_note
+
+**Portal reply validation** Accepted the corresponding form inputs.
 
 **Employee actually returned** {"receipt": true}
 
@@ -1032,7 +1058,7 @@ To finish reviewing expense M17 ($145.00 dinner at Market Street on 2026-06-17),
 **Client check:** client (source: memo_llm) — CLIENT/high 'Juniper Labs' (evidence: 'Dinner with customer Juniper Labs')
 **Fact sources:** attendee=memo_llm
 **LLM:** stub · prompt meals_v1.txt
-**LLM reasoning:** 
+**LLM reasoning:**
 
 ---
 
@@ -1071,7 +1097,7 @@ Input
 **Hotel:** city=Boston tier=1 nights=1 via city_table (table match)
 **Fact sources:** attendee=memo_llm · city=city_table · nights=memo_keyword
 **LLM:** stub · prompt hotel_v1.txt
-**LLM reasoning:** 
+**LLM reasoning:**
 
 ---
 
@@ -1116,13 +1142,15 @@ Expected after a complete reply: **approve**.
 **Client check:** client (source: memo_llm) — CLIENT/high 'Juniper Labs' (evidence: 'Dinner with customer Juniper Labs')
 **Fact sources:** attendee=memo_llm
 **LLM:** stub · prompt general_v1.txt
-**LLM reasoning:** 
+**LLM reasoning:**
 
 **Question to employee:**
 
-To finish reviewing expense M19 ($18.00 software at Market Street on 2026-06-17), we need one thing: Please provide the software approval code. Software purchases always need an approval code.
+To finish reviewing expense M19 ($18.00 software at Market Street on 2026-06-17), we need one thing: Please provide the software approval code.
 
 **Fields offered** approval_code, employee_note
+
+**Portal reply validation** Accepted the corresponding form inputs.
 
 **Employee actually returned** {"approval_code": "SW-19"}
 
@@ -1147,7 +1175,7 @@ To finish reviewing expense M19 ($18.00 software at Market Street on 2026-06-17)
 **Client check:** client (source: memo_llm) — CLIENT/high 'Juniper Labs' (evidence: 'Dinner with customer Juniper Labs')
 **Fact sources:** attendee=memo_llm
 **LLM:** stub · prompt general_v1.txt
-**LLM reasoning:** 
+**LLM reasoning:**
 
 ---
 
@@ -1193,13 +1221,15 @@ Expected after a complete reply: **approve**.
 **Client check:** unknown (source: memo_llm) — UNCLEAR/low name=None -> not trusted
 **Fact sources:** attendee=memo_llm
 **LLM:** stub · prompt meals_v1.txt
-**LLM reasoning:** 
+**LLM reasoning:**
 
 **Question to employee:**
 
 To finish reviewing expense M20 ($96.00 dinner at Market Street on 2026-06-17), we need one thing: Who attended: coworkers only, an external customer, or a vendor/partner? If a customer, please name the company. (Dinner over $60.00 is reimbursed only when a client attended.)
 
 **Fields offered** attendee_type, client_name, employee_note
+
+**Portal reply validation** Accepted the corresponding form inputs.
 
 **Employee actually returned** {"attendee_type": "Client", "client_name": "Juniper Labs"}
 
@@ -1227,7 +1257,7 @@ To finish reviewing expense M20 ($96.00 dinner at Market Street on 2026-06-17), 
 **Client check:** client (source: employee_answer) — employee stated client 'Juniper Labs'
 **Fact sources:** attendee=employee_answer
 **LLM:** stub · prompt meals_v1.txt
-**LLM reasoning:** 
+**LLM reasoning:**
 
 ---
 
@@ -1273,13 +1303,15 @@ Expected after a complete reply: **reject**.
 **Client check:** unknown (source: memo_llm) — UNCLEAR/low name=None -> not trusted
 **Fact sources:** attendee=memo_llm
 **LLM:** stub · prompt meals_v1.txt
-**LLM reasoning:** 
+**LLM reasoning:**
 
 **Question to employee:**
 
 To finish reviewing expense M21 ($96.00 dinner at Market Street on 2026-06-17), we need one thing: Who attended: coworkers only, an external customer, or a vendor/partner? If a customer, please name the company. (Dinner over $60.00 is reimbursed only when a client attended.)
 
 **Fields offered** attendee_type, client_name, employee_note
+
+**Portal reply validation** Accepted the corresponding form inputs.
 
 **Employee actually returned** {"attendee_type": "Vendor / partner / other"}
 
@@ -1305,7 +1337,7 @@ To finish reviewing expense M21 ($96.00 dinner at Market Street on 2026-06-17), 
 **Client check:** internal (source: employee_answer) — employee stated vendor (not a client)
 **Fact sources:** attendee=employee_answer
 **LLM:** stub · prompt meals_v1.txt
-**LLM reasoning:** 
+**LLM reasoning:**
 
 ---
 
@@ -1351,13 +1383,15 @@ Expected after a complete reply: **approve**.
 **Client check:** unknown (source: memo_llm) — UNCLEAR/low name=None -> not trusted
 **Fact sources:** attendee=memo_llm
 **LLM:** stub · prompt meals_v1.txt
-**LLM reasoning:** 
+**LLM reasoning:**
 
 **Question to employee:**
 
 To finish reviewing expense M22 ($96.00 dinner at Market Street on 2026-06-17), we need one thing: Who attended: coworkers only, an external customer, or a vendor/partner? If a customer, please name the company. (Dinner over $60.00 is reimbursed only when a client attended.)
 
 **Fields offered** attendee_type, client_name, employee_note
+
+**Portal reply validation** Accepted the corresponding form inputs.
 
 **Employee actually returned** {"attendee_type": "Client", "client_name": "Juniper Labs"}
 
@@ -1385,7 +1419,7 @@ To finish reviewing expense M22 ($96.00 dinner at Market Street on 2026-06-17), 
 **Client check:** client (source: employee_answer) — employee stated client 'Juniper Labs'
 **Fact sources:** attendee=employee_answer
 **LLM:** stub · prompt meals_v1.txt
-**LLM reasoning:** 
+**LLM reasoning:**
 
 ---
 
@@ -1423,7 +1457,7 @@ Input
 **Client check:** unknown (source: memo_llm) — UNCLEAR/low name=None -> not trusted
 **Fact sources:** attendee=memo_llm
 **LLM:** stub · prompt meals_v1.txt
-**LLM reasoning:** 
+**LLM reasoning:**
 
 ---
 
@@ -1473,6 +1507,8 @@ Expected after a complete reply: **approve**.
 To finish reviewing expense M24 (24.00 EUR office at Market Street on 2026-06-17), we need one thing: Receipts are required for any expense over $25.00. Please attach it.
 
 **Fields offered** receipt, employee_note
+
+**Portal reply validation** Accepted the corresponding form inputs.
 
 **Employee actually returned** {"receipt": true}
 
@@ -1543,10 +1579,12 @@ Expected after a complete reply: **approve**.
 **Question to employee:**
 
 To finish reviewing expense M25 (30.00 GBP office at Market Street on 2026-06-17), we need the following (please answer all in one reply):
-1. What USD amount was charged on your card? We could not convert 30.0 GBP to USD.
+1. What USD amount appears on your card statement?
 2. If the corrected USD amount is above $25, attach the receipt.
 
 **Fields offered** amount_usd, receipt, employee_note
+
+**Portal reply validation** Accepted the corresponding form inputs.
 
 **Employee actually returned** {"amount_usd": 39, "receipt": true}
 
@@ -1615,9 +1653,11 @@ Expected after a complete reply: **approve**.
 
 To finish reviewing expense M26 ($92.00 software at Market Street on 2026-06-17), we need the following (please answer all in one reply):
 1. Receipts are required for any expense over $25.00. Please attach it.
-2. Please provide the software approval code. Software purchases always need an approval code.
+2. Please provide the software approval code.
 
 **Fields offered** receipt, approval_code, employee_note
+
+**Portal reply validation** Accepted the corresponding form inputs.
 
 **Employee actually returned** {"approval_code": "SW-19", "receipt": true}
 
@@ -1688,6 +1728,8 @@ To finish reviewing expense M27 ($78.00 dinner at Market Street on 2026-06-17), 
 
 **Fields offered** receipt, employee_note
 
+**Portal reply validation** Accepted the corresponding form inputs.
+
 **Employee actually returned** {"receipt": true}
 
 ### M27 · Alex Rivera · 2026-06-17 (Wed) · Dinner · 78.00 USD
@@ -1753,13 +1795,15 @@ Expected after a complete reply: **approve**.
 **Client check:** unknown (source: memo_llm) — UNCLEAR/low name=None -> not trusted
 **Fact sources:** attendee=memo_llm
 **LLM:** stub · prompt meals_v1.txt
-**LLM reasoning:** 
+**LLM reasoning:**
 
 **Question to employee:**
 
 To finish reviewing expense M28 ($75.00 entertainment at Juniper Labs on 2026-06-17), we need one thing: Who attended: coworkers only, an external customer, or a vendor/partner? If a customer, please name the company. (Entertainment is reimbursed only with a client; please name the client company.)
 
 **Fields offered** attendee_type, client_name, employee_note
+
+**Portal reply validation** Accepted the corresponding form inputs.
 
 **Employee actually returned** {"attendee_type": "Client", "client_name": "Juniper Labs"}
 
@@ -1786,7 +1830,7 @@ To finish reviewing expense M28 ($75.00 entertainment at Juniper Labs on 2026-06
 **Client check:** client (source: employee_answer) — employee stated client 'Juniper Labs'
 **Fact sources:** attendee=employee_answer
 **LLM:** stub · prompt meals_v1.txt
-**LLM reasoning:** 
+**LLM reasoning:**
 
 ---
 
@@ -1825,7 +1869,7 @@ Input
 **Hotel:** city=New York tier=1 nights=1 via city_table (table match)
 **Fact sources:** attendee=memo_llm · city=city_table · nights=memo_keyword
 **LLM:** stub · prompt hotel_v1.txt
-**LLM reasoning:** 
+**LLM reasoning:**
 
 ---
 
@@ -1864,7 +1908,7 @@ Input
 **Hotel:** city=Los Angeles tier=1 nights=1 via city_table (table match)
 **Fact sources:** attendee=memo_llm · city=city_table · nights=memo_keyword
 **LLM:** stub · prompt hotel_v1.txt
-**LLM reasoning:** 
+**LLM reasoning:**
 
 ---
 
@@ -1903,7 +1947,7 @@ Input
 **Hotel:** city=San Francisco tier=1 nights=1 via city_table (table match)
 **Fact sources:** attendee=memo_llm · city=city_table · nights=memo_keyword
 **LLM:** stub · prompt hotel_v1.txt
-**LLM reasoning:** 
+**LLM reasoning:**
 
 ---
 
@@ -1942,7 +1986,7 @@ Input
 **Hotel:** city=Washington DC tier=1 nights=1 via city_table (table match)
 **Fact sources:** attendee=memo_llm · city=city_table · nights=memo_keyword
 **LLM:** stub · prompt hotel_v1.txt
-**LLM reasoning:** 
+**LLM reasoning:**
 
 ---
 
@@ -1981,7 +2025,7 @@ Input
 **Hotel:** city=Seattle tier=1 nights=1 via city_table (table match)
 **Fact sources:** attendee=memo_llm · city=city_table · nights=memo_keyword
 **LLM:** stub · prompt hotel_v1.txt
-**LLM reasoning:** 
+**LLM reasoning:**
 
 ---
 
@@ -2020,7 +2064,7 @@ Input
 **Hotel:** city=Chicago tier=1 nights=1 via city_table (table match)
 **Fact sources:** attendee=memo_llm · city=city_table · nights=memo_keyword
 **LLM:** stub · prompt hotel_v1.txt
-**LLM reasoning:** 
+**LLM reasoning:**
 
 ---
 
@@ -2059,7 +2103,7 @@ Input
 **Hotel:** city=Boston tier=1 nights=1 via city_table (table match)
 **Fact sources:** attendee=memo_llm · city=city_table · nights=memo_keyword
 **LLM:** stub · prompt hotel_v1.txt
-**LLM reasoning:** 
+**LLM reasoning:**
 
 ---
 
@@ -2098,7 +2142,7 @@ Input
 **Hotel:** city=London tier=1 nights=1 via city_table (table match)
 **Fact sources:** attendee=memo_llm · city=city_table · nights=memo_keyword
 **LLM:** stub · prompt hotel_v1.txt
-**LLM reasoning:** 
+**LLM reasoning:**
 
 ---
 
@@ -2137,7 +2181,7 @@ Input
 **Hotel:** city=Oakland tier=2 nights=1 via llm (high)
 **Fact sources:** attendee=memo_llm · city=memo_llm · nights=memo_keyword
 **LLM:** stub · prompt hotel_v1.txt
-**LLM reasoning:** 
+**LLM reasoning:**
 
 ---
 
@@ -2176,7 +2220,7 @@ Input
 **Hotel:** city=Jersey City tier=2 nights=1 via llm (high)
 **Fact sources:** attendee=memo_llm · city=memo_llm · nights=memo_keyword
 **LLM:** stub · prompt hotel_v1.txt
-**LLM reasoning:** 
+**LLM reasoning:**
 
 ---
 
@@ -2215,7 +2259,7 @@ Input
 **Hotel:** city=Santa Monica tier=2 nights=1 via llm (high)
 **Fact sources:** attendee=memo_llm · city=memo_llm · nights=memo_keyword
 **LLM:** stub · prompt hotel_v1.txt
-**LLM reasoning:** 
+**LLM reasoning:**
 
 ---
 
@@ -2254,4 +2298,4 @@ Input
 **Hotel:** city=Arlington VA tier=2 nights=1 via llm (high)
 **Fact sources:** attendee=memo_llm · city=memo_llm · nights=memo_keyword
 **LLM:** stub · prompt hotel_v1.txt
-**LLM reasoning:** 
+**LLM reasoning:**

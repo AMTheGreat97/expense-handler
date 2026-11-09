@@ -91,6 +91,8 @@ def _resolve_attendee(exp, llm_facts, memo_blank, llm_failed):
         return "client", name, "memo_llm", f"CLIENT/high '{name}' (evidence: {ev!r})"
     if t == "INTERNAL" and conf == "high":
         return "internal", None, "memo_llm", f"INTERNAL/high (evidence: {ev!r})"
+    if t == "VENDOR" and conf == "high" and re.search(r"\b(vendors?|suppliers?)\b", ev or "", re.I):
+        return "vendor", None, "memo_llm", f"VENDOR/high (evidence: {ev!r})"
     return "unknown", name, "memo_llm", f"{t}/{conf} name={name!r} -> not trusted"
 
 
@@ -101,8 +103,8 @@ def _attendee_conflict(attendee, a_source, llm_facts):
     t, name, ev = llm_facts.get("attendee_type"), llm_facts.get("client_name"), llm_facts.get("attendee_evidence")
     if attendee == "internal" and t == "CLIENT" and name:
         return name, f"'Client business' not checked, but the memo names client {name!r} (evidence: {ev!r})"
-    if attendee == "client" and t == "INTERNAL":
-        return None, f"'Client business' checked, but the memo reads as internal only (evidence: {ev!r})"
+    if attendee == "client" and t in {"INTERNAL", "VENDOR"}:
+        return None, f"'Client business' checked, but the memo indicates non-client attendees (evidence: {ev!r})"
     return None
 
 
@@ -294,7 +296,7 @@ def decide(expense, llm, fx, use_llm=True):
     # ---- Global alcohol rule (any category) ---------------------------------
     alcohol_blocked = False
     if generic_drinks and not alcohol_kw and declared is None and attendee != "client":
-        alcohol_conflict = "The memo says drinks. Were any alcoholic?"
+        alcohol_conflict = "The memo says drinks"
         need_client("If alcohol was included, confirm who attended.")
     if alcohol_conflict:
         if attendee == "client":

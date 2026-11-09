@@ -1,0 +1,151 @@
+Expense approval assumptions and questions for Priya
+Prepared 2026-11-09
+
+Purpose
+These are the current interpretations and implementation choices to review with Priya.
+A prior document marking something CONFIRMED is evidence of that document's claim.
+The rough meeting notes contain fewer details. Confirm anything whose source is unclear.
+
+Proposed policy assumptions awaiting Priya
+
+A01. Hotel limits apply to the average across the stay.
+Current calculation is total USD cost divided by exact billed nights.
+A $150 night plus a $250 night totals $400 for two nights and passes a $200 average cap.
+The candidate chose this for the simulation. Priya has NOT confirmed it.
+Ask whether taxes, fees, room service and uneven nightly rates are included in the average.
+
+A02. Blank legacy meal memo means internal attendance.
+This was inferred from the historical decisions. It can lead to rejection.
+Ask whether an absent attendee should instead trigger a question.
+
+A03. Office, airfare and ground transport have no amount cap.
+Inferred from examples. Ask about exceptional amounts, business purpose and other approval requirements.
+
+A04. Employee attestations can establish external client attendance.
+A client label plus a name can authorize exceptions without a CRM lookup.
+Ask which employees may attest and whether any amounts require verification.
+A company name alone does not establish the relationship.
+
+A05. Receipt true means sufficient documentation for this exercise.
+The engine accepts a boolean. It does not check an image, ownership, amount or duplicate receipt.
+Ask what document must be attached and whether an employee statement is sufficient.
+
+A06. Software code validity means a trimmed string longer than one character.
+The rulebook labels this confirmed. The rough notes say only that a code is required.
+Ask whether Finance has a list, issuer, expiry, purchase limit or authorized employee.
+
+A07. FX uses the expense-date historical rate, then the latest available rate.
+The candidate selected the fallback. Ask whether the card-statement USD amount should take priority
+and whether an unavailable historical rate must go to Finance instead of today's rate.
+
+A08. Positive amounts only, rounded to USD cent precision before policy checks.
+Zero, negatives, unreadable values and nonfinite values are invalid.
+Ask how refunds, credit notes and currencies with different minor units should work.
+Hotel cap comparisons use total against cap times nights to avoid rounding away a violation.
+
+A09. Dates accept ISO YYYY-MM-DD and US MM/DD/YYYY.
+Future dates are flagged. The process host's current date defines future.
+Ask whether local travel dates, timezone boundaries or advances need different treatment.
+
+A10. The supported category list is closed.
+Unknown categories are returned for correction. The engine does not invent a policy for gifts or training.
+Ask what happens when an expense genuinely belongs outside this list.
+
+A11. Missing receipt indicator and false are distinct.
+The rulebook asks for the required indicator even for a small claim.
+At or below $25 an explicit false is sufficient. Ask whether the indicator itself must always exist.
+
+A12. Any missing decision-critical documentation takes priority over ordinary policy rejection.
+For example, a $90 internal dinner without a receipt is flagged before being rejected.
+The rulebook labels this confirmed. Ask whether a clear nonreimbursable claim should instead reject immediately.
+
+A13. Meal caps apply to the entire expense, rather than each attendee.
+The rulebook labels this confirmed. Ask how split bills, attendee counts and grouped meals are handled.
+
+A14. Named high-confidence customer attendance waives meal amount, weekend and alcohol limits.
+There is no client meal upper bound in the rulebook.
+Ask whether especially large claims or mixed personal/business attendees need another limit.
+
+A15. Only the eight named main cities get the Tier-1 hotel allowance.
+Nearby cities and neighborhoods are Tier 2 under the current rulebook.
+Ask how geographic boundaries, similarly named cities and countries should be recorded.
+
+A16. Alcohol restriction applies across categories.
+The engine checks hotel, office and other categories as well as meals.
+The rough notes say alcohol is allowed with customers. Ask about minibar and mixed purchases.
+
+A17. A statement explicitly identifying a later employee answer can resolve a conflicting memo.
+The original memo remains in the trace. Ask when Finance must verify a contradictory correction.
+
+A18. Missing category questions can ask conditional hotel, software and attendee details together.
+Only the applicable branch needs an answer. This is the selected approach to one-contact collection.
+Ask whether a dynamic form or a compact conditional email is better for employees.
+
+A19. After one incomplete employee reply, the case stays flagged and moves to Finance.
+This is a new workflow choice made to avoid repeatedly chasing the employee.
+It does not prove that the expense is resolved. Ask Priya who owns it and what happens next.
+
+A20. Model outages and unverifiable extraction go to Finance when deterministic facts cannot finish the decision.
+There is no completed Finance resolution interface in the current demo.
+Ask for an owner, response expectation and retry policy.
+
+A21. A rejected expense resubmitted as a new expense is evaluated independently.
+The rulebook labels this confirmed. There is no cross-expense duplicate reimbursement detection.
+Ask about identical receipts, changed IDs and correcting a rejected decision.
+
+Implementation and demo choices to explain
+
+A22. Question generation is deterministic Python in app/questions.py.
+There is no LLM prompt that writes the follow-up email.
+The LLM prompts extract facts. The code turns collected gaps into text and form fields.
+No email is sent by the application. The question is attached to the POSTed decision.
+
+A23. Preview performs code checks and submits run the full model-assisted pipeline.
+Editing previews can differ from the final result and can still call FX.
+POST occurs on Submit and after a follow-up answer.
+
+A24. Storage defaults to in-memory SQLite with manual JSON export.
+Separate command-line batch and portal processes have separate stores.
+Restart recovery and shared employee/Finance queues need additional persistence.
+
+A25. Delivery retries may create duplicate receiver entries.
+Version allocation, POST and local commit are separate operations.
+There is no transactional outbox or receiver-enforced idempotency.
+
+A26. Employee identities and expense ownership are unverified in the local demo.
+The shared portal history and follow-up picker need authorization before multiple real users use them.
+
+A27. A model's high confidence is a self-reported label.
+Quote checks establish that text appeared, rather than independently proving attendance or purchase truth.
+Temperature zero and a valid schema do not establish correctness on new memos.
+
+A28. Security instructions in expense text trigger rejection under the current policy.
+The phrase screen can also match quoted or benign references.
+Ask whether suspected manipulation requires an investigation route instead of automatic rejection.
+
+A29. A named customer can attend alongside employees.
+The user explicitly reconfirmed this interpretation in this conversation.
+Internal team plus an explicitly named external, end or official client is eligible for client exceptions.
+The phrase internal clients by itself leaves the relationship unresolved and should be clarified.
+
+A30. Hotel city and nights should be requested together when both could change the outcome.
+The user explicitly selected this workflow in this conversation.
+It is an assumption to present to Priya along with the general one-contact design.
+
+Simulation-only choices
+
+A31. Offline replay supplies fixed extraction facts and fixed FX rates.
+EUR uses 1.08 USD and GBP uses 1.27 USD. These are synthetic test rates.
+Stub fixtures exercise the engine independently from language-model variability.
+
+A32. Live language replay uses the configured model for selected difficult memos.
+FX and publishing stay offline in those runs. The result is one observed run per case.
+The complete offline corpus is broader than the live language subset.
+
+A33. All simulation expenses are synthetic and isolated from the Finance endpoint.
+Logs include individual inputs, expected outcomes, rationale, actual rules, questions, scripted replies and final versions.
+The answer key follows the current assumptions. Passing it does not establish Priya's agreement with them.
+
+A34. The portal's current hotel form derives nights from check-in and check-out dates.
+Legacy batch records can still state an exact night count. Confirm same-day stays, partial stays,
+extended bookings and date corrections with Priya before interpreting them automatically.

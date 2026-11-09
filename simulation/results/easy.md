@@ -421,6 +421,8 @@ To finish reviewing expense E12 ($25.01 office at Market Street on 2026-06-17), 
 
 **Fields offered** receipt, employee_note
 
+**Portal reply validation** Accepted the corresponding form inputs.
+
 **Employee actually returned** {"receipt": true}
 
 ### E12 · Alex Rivera · 2026-06-17 (Wed) · Office · 25.01 USD
@@ -651,9 +653,11 @@ Expected after a complete reply: **approve**.
 
 **Question to employee:**
 
-To finish reviewing expense E18 ($18.00 software at Market Street on 2026-06-17), we need one thing: Please provide the software approval code. Software purchases always need an approval code.
+To finish reviewing expense E18 ($18.00 software at Market Street on 2026-06-17), we need one thing: Please provide the software approval code.
 
 **Fields offered** approval_code, employee_note
+
+**Portal reply validation** Accepted the corresponding form inputs.
 
 **Employee actually returned** {"approval_code": "SW-19"}
 
@@ -719,9 +723,11 @@ Expected after a complete reply: **approve**.
 
 **Question to employee:**
 
-To finish reviewing expense E19 ($18.00 software at Market Street on 2026-06-17), we need one thing: Please provide the software approval code. Software purchases always need an approval code.
+To finish reviewing expense E19 ($18.00 software at Market Street on 2026-06-17), we need one thing: Please provide the software approval code.
 
 **Fields offered** approval_code, employee_note
+
+**Portal reply validation** Accepted the corresponding form inputs.
 
 **Employee actually returned** {"approval_code": "SW-19"}
 
@@ -787,9 +793,11 @@ Expected after a complete reply: **approve**.
 
 **Question to employee:**
 
-To finish reviewing expense E20 ($18.00 software at Market Street on 2026-06-17), we need one thing: Please provide the software approval code. Software purchases always need an approval code.
+To finish reviewing expense E20 ($18.00 software at Market Street on 2026-06-17), we need one thing: Please provide the software approval code.
 
 **Fields offered** approval_code, employee_note
+
+**Portal reply validation** Accepted the corresponding form inputs.
 
 **Employee actually returned** {"approval_code": "SW-19"}
 
@@ -882,7 +890,7 @@ Input
 **Hotel:** city=Boston tier=1 nights=1 via city_table (table match)
 **Fact sources:** attendee=memo_llm · city=city_table · nights=memo_keyword
 **LLM:** stub · prompt hotel_v1.txt
-**LLM reasoning:** 
+**LLM reasoning:**
 
 ---
 
@@ -921,7 +929,7 @@ Input
 **Hotel:** city=Boston tier=1 nights=1 via city_table (table match)
 **Fact sources:** attendee=memo_llm · city=city_table · nights=memo_keyword
 **LLM:** stub · prompt hotel_v1.txt
-**LLM reasoning:** 
+**LLM reasoning:**
 
 ---
 
@@ -960,7 +968,7 @@ Input
 **Hotel:** city=Boston tier=1 nights=1 via city_table (table match)
 **Fact sources:** attendee=memo_llm · city=city_table · nights=memo_keyword
 **LLM:** stub · prompt hotel_v1.txt
-**LLM reasoning:** 
+**LLM reasoning:**
 
 ---
 
@@ -999,7 +1007,7 @@ Input
 **Hotel:** city=Columbus tier=2 nights=1 via llm (high)
 **Fact sources:** attendee=memo_llm · city=memo_llm · nights=memo_keyword
 **LLM:** stub · prompt hotel_v1.txt
-**LLM reasoning:** 
+**LLM reasoning:**
 
 ---
 
@@ -1038,7 +1046,7 @@ Input
 **Hotel:** city=Columbus tier=2 nights=1 via llm (high)
 **Fact sources:** attendee=memo_llm · city=memo_llm · nights=memo_keyword
 **LLM:** stub · prompt hotel_v1.txt
-**LLM reasoning:** 
+**LLM reasoning:**
 
 ---
 
@@ -1077,11 +1085,11 @@ Input
 **Hotel:** city=Columbus tier=2 nights=1 via llm (high)
 **Fact sources:** attendee=memo_llm · city=memo_llm · nights=memo_keyword
 **LLM:** stub · prompt hotel_v1.txt
-**LLM reasoning:** 
+**LLM reasoning:**
 
 ---
 
-## E28 · Normalize $28.00 and  lunch 
+## E28 · Normalize $28.00 and  lunch
 
 Input
 

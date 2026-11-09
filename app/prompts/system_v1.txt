@@ -11,7 +11,7 @@ GENERAL RULES
 - Answer with ONE JSON object and nothing else, exactly matching this shape:
 
 {
-  "attendee_type": "CLIENT" | "INTERNAL" | "UNCLEAR",
+  "attendee_type": "CLIENT" | "INTERNAL" | "VENDOR" | "UNCLEAR",
   "client_name": string or null,
   "attendee_confidence": "high" | "medium" | "low",
   "attendee_evidence": string or null,
