@@ -229,6 +229,25 @@ The table is **data, not code**, so Finance can edit it. **Only the 8 main citie
 
 A rejected expense stays rejected. If the employee resubmits it with new information, it's a **new expense**. It gets a new record and goes through every rule. It's linked to the old one in the log for reference only.
 
+### 8.5 Portal vs batch fact sources
+
+- **Batch (legacy):** only the memo carries facts. The LLM and keyword checks extract them, and the engine asks a follow-up question when a fact that matters is missing.
+- **Portal:** the form collects every decision-critical fact as a structured field, so a portal decision never depends on the LLM for a fact the rules need. One map, `FORM_REQUIREMENTS` in `app/config.py`, lists each field, the category that shows it, when it's required, and the expense key the engine reads. The portal builds both **visibility** and **required-field checks** from that map, so the form and the rules can't drift apart (a unit test checks that every key in the map is one the engine reads).
+
+| Category | Form fields (required unless noted) |
+|---|---|
+| All | employee, date, category, merchant, amount + currency, memo (brief description), receipt (when the USD amount is over $25), USD amount on card statement (optional, non-USD only) |
+| Breakfast / Lunch / Dinner / Entertainment | "Client business" checkbox; client company name (required if checked); "Includes alcohol" checkbox |
+| Entertainment | as above; the preview warns that it's rejected without client business |
+| Hotel | city (8 Tier-1 cities or Other + typed name); nights (whole number ≥ 1) |
+| Software | approval code |
+
+- **Submit is blocked** until every required field is filled ("Please fill: …"). Nothing is run, POSTed or stored, so the portal produces no avoidable flags. In batch, the same gaps still become follow-up questions.
+- **Checkbox = attestation.** Unchecked "Client business" means the employee says it was internal. Checked + name means a client. Approvals that rely on this are tagged `approved_on_employee_attestation`.
+- **Alcohol** = the checkbox, OR an alcohol keyword in the memo, OR the LLM.
+- **Contradictions are asked, never overridden.** The LLM still reads the portal memo. If the form says internal but the memo names a client at high confidence (`ATTESTATION_CONFLICT_CLIENT`), or the form says no alcohol but the memo mentions it (`ATTESTATION_CONFLICT_ALCOHOL`), we FLAG with a question about the contradiction. As everywhere else, we only ask when it changes the outcome: an under-cap weekday lunch is fine either way. Once the employee answers, the answer counts.
+- **Every decision-critical fact records its source** in `facts.sources` and in the decision log ("Fact sources: attendee=form · city=form · nights=memo_keyword"). The values are `form`, `employee_answer`, `memo_llm`, `memo_keyword`, `city_table`, or `code` (blank memo → internal).
+
 ---
 
 ## 9. Policy rules and overrides (S5)

@@ -12,6 +12,7 @@ from . import config
 ATTENDEE_OPTIONS = ["Internal only (our employees)", "Client", "Vendor / partner / other"]
 _ATTENDEE_MAP = {ATTENDEE_OPTIONS[0]: "INTERNAL", ATTENDEE_OPTIONS[1]: "CLIENT", ATTENDEE_OPTIONS[2]: "VENDOR"}
 TIER1_CHOICES = ["New York", "Los Angeles", "San Francisco", "Washington DC", "Seattle", "Chicago", "Boston", "London"]
+ALCOHOL_OPTIONS = ["Yes, it included alcohol", "No alcohol"]
 
 
 def _describe(exp, facts):
@@ -48,6 +49,9 @@ def build(exp, facts, gaps):
             who = f" Was {g['llm_client_name']} a client?" if g.get("llm_client_name") else ""
             asks.append(f"Who attended: only our employees, or a client?{who} If a client, please name the "
                         f"company. ({g['reason']})")
+        elif gid == "alcohol":
+            fields.append({"name": "alcohol_declared", "type": "choice", "options": ALCOHOL_OPTIONS})
+            asks.append(g["reason"])
         elif gid == "approval_code":
             fields.append({"name": "approval_code", "type": "text", "label": "Software approval code"})
             asks.append(f"Please provide the software approval code. {g['reason']}")
@@ -90,6 +94,10 @@ def apply_answers(expense, answers):
     """Merge an employee's answers into a copy of the expense. Free text stays untrusted."""
     exp = dict(expense)
     a = {k: v for k, v in (answers or {}).items() if v not in (None, "", [])}
+    # Remember which facts the employee answered, so the engine can tell form vs answer.
+    exp["answered_fields"] = sorted(set(exp.get("answered_fields") or []) | set(a))
+    if "alcohol_declared" in a:
+        exp["alcohol_declared"] = a["alcohol_declared"] in (True, ALCOHOL_OPTIONS[0], "yes", "true")
     if a.get("receipt") in (True, "true", "yes"):
         exp["receipt"] = True
     if "category" in a:

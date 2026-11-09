@@ -40,6 +40,9 @@ def render(payload, trace=None):
     if f.get("hotel"):
         h = f["hotel"]
         lines.append(f"**Hotel:** city={h.get('city')} tier={h.get('tier')} nights={h.get('nights')} via {h.get('source')}")
+    src = {k: v for k, v in (f.get("sources") or {}).items() if v}
+    if src:
+        lines.append("**Fact sources:** " + " · ".join(f"{k}={v}" for k, v in src.items()))
     if f.get("fx"):
         lines.append(f"**FX:** {json.dumps(f['fx'])}")
     if payload.get("llm"):

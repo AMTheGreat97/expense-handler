@@ -31,6 +31,7 @@
 - **Completeness runs before policy rejects [CONFIRMED].** An over-limit expense with no receipt is flagged. The question asks for the receipt plus anything else that's missing. We only reject once we have what we need to judge.
 - **Security beats everything.** An injection attempt is rejected even if other information is missing.
 - **Only ask for what changes the outcome.** For example, a $22 weekday lunch doesn't need customer confirmation, because it's approved either way.
+- **Portal facts are structured; batch facts come from the memo.** The portal collects every fact these rules need as a form field (client business + name, alcohol, hotel city + nights, approval code), listed in one map (`FORM_REQUIREMENTS` in `app/config.py`). The rules are the same for both. A form answer never silently overrides a memo that contradicts it: if it matters, we ask. See DECISION_FLOW §8.5.
 
 ---
 

@@ -54,6 +54,45 @@ ALLOWED_CATEGORIES = [
     "Software", "Office", "Ground Transport", "Airfare",
 ]
 
+# ---- Portal form requirements ---------------------------------------------
+# Batch (legacy) data only has a memo, so the LLM extracts facts and the engine
+# asks. The portal instead collects every decision-critical fact as a field.
+# This one map drives BOTH what the portal shows and what it requires before
+# Submit, so the form and the rules cannot drift apart.
+#   field       portal input name
+#   engine_key  expense key the engine reads (tests check the engine reads it)
+#   categories  None = every category, else the categories that show it
+#   required    always | if_shown | if_over_receipt_threshold | optional
+#   show_if     (other_field, value) ; value "!X" means "anything but X"
+_MEAL_LIKE = ["Breakfast", "Lunch", "Dinner", "Entertainment"]
+FORM_REQUIREMENTS = [
+    {"field": "employee", "label": "Employee", "engine_key": "employee", "required": "always"},
+    {"field": "date", "label": "Date", "engine_key": "date", "required": "always"},
+    {"field": "category", "label": "Category", "engine_key": "category", "required": "always"},
+    {"field": "merchant", "label": "Merchant", "engine_key": "merchant", "required": "always"},
+    {"field": "amount", "label": "Amount", "engine_key": "amount", "required": "always"},
+    {"field": "currency", "label": "Currency", "engine_key": "amount", "required": "always"},
+    {"field": "amount_usd", "label": "USD amount on your card statement", "engine_key": "amount_usd",
+     "required": "optional", "show_if": ("currency", "!USD")},
+    {"field": "memo", "label": "Memo (brief description)", "engine_key": "memo", "required": "always"},
+    {"field": "receipt", "label": "Receipt attached (required over $25)", "engine_key": "receipt",
+     "required": "if_over_receipt_threshold"},
+    {"field": "client_business", "label": "Client business (a client attended)", "engine_key": "attendee_type",
+     "categories": _MEAL_LIKE, "required": "optional",
+     "warn_unchecked": {"Entertainment": "Entertainment is only reimbursed for client business."}},
+    {"field": "client_name", "label": "Client company name", "engine_key": "client_name",
+     "categories": _MEAL_LIKE, "required": "if_shown", "show_if": ("client_business", True)},
+    {"field": "alcohol_declared", "label": "Includes alcohol", "engine_key": "alcohol_declared",
+     "categories": _MEAL_LIKE, "required": "optional"},
+    {"field": "city", "label": "Hotel city", "engine_key": "city", "categories": ["Hotel"], "required": "always"},
+    {"field": "city_other", "label": "City name", "engine_key": "city", "categories": ["Hotel"],
+     "required": "if_shown", "show_if": ("city", "Other")},
+    {"field": "nights", "label": "Nights (whole number, at least 1)", "engine_key": "nights",
+     "categories": ["Hotel"], "required": "always"},
+    {"field": "approval_code", "label": "Software approval code", "engine_key": "approval_code",
+     "categories": ["Software"], "required": "always"},
+]
+
 CATEGORY_SYNONYMS = {
     "breakfast": "Breakfast", "lunch": "Lunch", "dinner": "Dinner",
     "entertainment": "Entertainment",

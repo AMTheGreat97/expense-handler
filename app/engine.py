@@ -55,17 +55,30 @@ def _money(x):
     return f"${x:,.2f}"
 
 
+def given_by(exp, field):
+    """Where a structured field on the expense came from: 'form' or 'employee_answer'.
+
+    Portal submissions carry fact_source='form'; anything the employee later
+    answered (or any structured field on a batch expense) is 'employee_answer'.
+    """
+    if exp.get("fact_source") == "form" and field not in (exp.get("answered_fields") or []):
+        return "form"
+    return "employee_answer"
+
+
 def _resolve_attendee(exp, llm_facts, memo_blank, llm_failed):
     """Return (status, name, source, detail). status: client | internal | unknown."""
     a_type = (exp.get("attendee_type") or "").strip().upper()
     a_name = (exp.get("client_name") or "").strip()
     if a_type:                                           # structured: portal form / employee answer
+        src = given_by(exp, "attendee_type")
+        who = "employee attested on the form" if src == "form" else "employee stated"
         if a_type == "CLIENT":
             if len(a_name) > 1:
-                return "client", a_name, "employee_answer", f"employee stated client '{a_name}'"
-            return "unknown", None, "employee_answer", "employee chose Client but gave no company name"
+                return "client", a_name, src, f"{who} client '{a_name}'"
+            return "unknown", None, src, "employee chose Client but gave no company name"
         if a_type in {"INTERNAL", "VENDOR"}:
-            return "internal", None, "employee_answer", f"employee stated {a_type.lower()} (not a client)"
+            return "internal", None, src, f"{who} {a_type.lower()} (not a client)"
     if memo_blank:
         return "internal", None, "code", "memo blank -> NONE -> treated as internal"
     if llm_failed or llm_facts is None:
@@ -73,10 +86,22 @@ def _resolve_attendee(exp, llm_facts, memo_blank, llm_failed):
     t, conf, name = llm_facts["attendee_type"], llm_facts["attendee_confidence"], llm_facts.get("client_name")
     ev = llm_facts.get("attendee_evidence")
     if t == "CLIENT" and conf == "high" and name:
-        return "client", name, "llm", f"CLIENT/high '{name}' (evidence: {ev!r})"
+        return "client", name, "memo_llm", f"CLIENT/high '{name}' (evidence: {ev!r})"
     if t == "INTERNAL" and conf == "high":
-        return "internal", None, "llm", f"INTERNAL/high (evidence: {ev!r})"
-    return "unknown", name, "llm", f"{t}/{conf} name={name!r} -> not trusted"
+        return "internal", None, "memo_llm", f"INTERNAL/high (evidence: {ev!r})"
+    return "unknown", name, "memo_llm", f"{t}/{conf} name={name!r} -> not trusted"
+
+
+def _attendee_conflict(attendee, a_source, llm_facts):
+    """Form attestation vs a HIGH-confidence memo read that says the opposite -> detail, else None."""
+    if a_source != "form" or not llm_facts or llm_facts.get("attendee_confidence") != "high":
+        return None
+    t, name, ev = llm_facts.get("attendee_type"), llm_facts.get("client_name"), llm_facts.get("attendee_evidence")
+    if attendee == "internal" and t == "CLIENT" and name:
+        return name, f"'Client business' not checked, but the memo names client {name!r} (evidence: {ev!r})"
+    if attendee == "client" and t == "INTERNAL":
+        return None, f"'Client business' checked, but the memo reads as internal only (evidence: {ev!r})"
+    return None
 
 
 def decide(expense, llm, fx, use_llm=True):
@@ -189,14 +214,38 @@ def decide(expense, llm, fx, use_llm=True):
         llm_failed = not memo_blank
 
     attendee, client_name, a_source, a_detail = _resolve_attendee(exp, llm_facts, memo_blank, llm_failed)
+
+    # Never let a structured field silently override a contradicting memo.
+    client_conflict = _attendee_conflict(attendee, a_source, llm_facts)
+    if client_conflict:
+        conflict_name, conflict_detail = client_conflict
+        attendee, client_name, a_detail = "unknown", conflict_name, conflict_detail
+
     alcohol_kw = bool(ALCOHOL_WORDS.search(f"{memo} {note}"))
-    alcohol = alcohol_kw or bool(llm_facts and llm_facts["alcohol_mentioned"])
+    alcohol_llm = bool(llm_facts and llm_facts["alcohol_mentioned"])
+    memo_alcohol = alcohol_kw or alcohol_llm
+    memo_alc_src = "memo_keyword" if alcohol_kw else ("memo_llm" if alcohol_llm else None)
+    declared = exp.get("alcohol_declared")
+    alcohol_conflict = None
+    if declared is True:
+        alcohol, alc_src = True, given_by(exp, "alcohol_declared")
+    elif declared is False:
+        alc_src = given_by(exp, "alcohol_declared")
+        if memo_alcohol and alc_src == "form":
+            alcohol_conflict = f"'Includes alcohol' not checked, but the memo mentions alcohol (via {memo_alc_src})"
+            alcohol = None                                    # unknown until the employee answers
+        else:
+            alcohol = False                                   # attested (after a question, if memo disagreed)
+    else:
+        alcohol, alc_src = memo_alcohol, memo_alc_src
+
     c.facts.update({
         "amount": amount, "currency": currency, "amount_usd": amount_usd,
         "date": d.isoformat() if d else None, "weekday": d.strftime("%a") if d else None,
         "is_weekend": bool(d and d.weekday() >= 5), "category": category, "receipt": receipt,
         "attendee": {"status": attendee, "client_name": client_name, "source": a_source, "detail": a_detail},
-        "alcohol": {"mentioned": alcohol, "source": "keyword" if alcohol_kw else ("llm" if alcohol else None)},
+        "alcohol": {"mentioned": alcohol, "source": alc_src, "memo_mentions": memo_alcohol},
+        "sources": {"attendee": a_source, "alcohol": alc_src},
     })
 
     # ---- S2 (cont.) category gap, pre-asking what each category needs --------
@@ -221,13 +270,23 @@ def decide(expense, llm, fx, use_llm=True):
 
     def need_client(reason):
         if attendee == "unknown":
+            if client_conflict:
+                reason = f"{client_conflict[1]}. {reason}"
             c.gap("attendee", reason, llm_client_name=client_name)
             return True
         return False
 
     # ---- Global alcohol rule (any category) ---------------------------------
     alcohol_blocked = False
-    if alcohol:
+    if alcohol_conflict:
+        if attendee == "client":
+            alcohol = False   # alcohol is fine with a confirmed client either way
+            c.rule("ATTESTATION_CONFLICT_ALCOHOL", "pass", alcohol_conflict + "; client confirmed, so it does not matter")
+            c.rule("ALCOHOL_INTERNAL", "pass", f"client confirmed ({client_name})")
+        else:
+            c.rule("ATTESTATION_CONFLICT_ALCOHOL", "gap", alcohol_conflict)
+            c.gap("alcohol", alcohol_conflict + ". Did this expense include alcohol?")
+    elif alcohol:
         if attendee == "client":
             c.rule("ALCOHOL_INTERNAL", "pass", f"alcohol mentioned, client confirmed ({client_name})")
         elif not need_client("Alcohol is reimbursed only when a client attended."):
@@ -288,6 +347,13 @@ def decide(expense, llm, fx, use_llm=True):
     if alcohol_blocked:
         c.rule("ALCOHOL_INTERNAL", "fail", f"alcohol mentioned; {a_detail}")
 
+    if client_conflict:
+        # Ask only when a rule actually needs the client fact (same as any other client question).
+        if any(g["id"] == "attendee" for g in c.gaps):
+            c.rule("ATTESTATION_CONFLICT_CLIENT", "gap", client_conflict[1])
+        else:
+            c.rule("ATTESTATION_CONFLICT_CLIENT", "pass", client_conflict[1] + "; does not change the outcome")
+
     # ---- Decide --------------------------------------------------------------
     if c.gaps:
         return _finish(exp, c, "flag", amount_usd=amount_usd, category=category, route="employee")
@@ -298,18 +364,21 @@ def decide(expense, llm, fx, use_llm=True):
         c.rule("FAIL_CLOSED", "gap", "LLM unavailable or unverified security signal -> never auto-approve")
         return _finish(exp, c, "flag", amount_usd=amount_usd, category=category, route="finance")
     tags = []
-    if a_source == "employee_answer" and attendee == "client" and any(
+    if a_source in ("employee_answer", "form") and attendee == "client" and any(
             r["result"] == "pass" and "client confirmed" in r["detail"] for r in c.rules):
         tags.append("approved_on_employee_attestation")
+    elif alc_src == "employee_answer" and alcohol is False and memo_alcohol:
+        tags.append("approved_on_employee_attestation")    # said "no alcohol" when asked about the memo
     return _finish(exp, c, "approve", amount_usd=amount_usd, category=category, tags=tags)
 
 
 def _hotel(exp, c, merchant, memo, note, amount_usd, llm_facts, llm_failed):
-    city, tier, src = None, None, None
+    city, tier, src, city_src = None, None, None, None
     if (exp.get("city") or "").strip():
         city_in = exp["city"].strip()
         t1 = cities.canonical_tier1(city_in)
-        city, tier, src = (t1 or city_in), (1 if t1 else 2), "employee_answer"
+        city_src = given_by(exp, "city")
+        city, tier, src = (t1 or city_in), (1 if t1 else 2), city_src
     else:
         table_city, tnote = cities.table_match(f"{merchant} {memo} {note}")
         llm_city = llm_facts.get("city") if llm_facts and llm_facts["city_confidence"] == "high" else None
@@ -317,10 +386,11 @@ def _hotel(exp, c, merchant, memo, note, amount_usd, llm_facts, llm_failed):
         if table_city and llm_city and llm_t1 != table_city:
             c.notes.append(f"city table says {table_city}, LLM says {llm_city} -> ask")
         elif table_city:
-            city, tier, src = table_city, 1, f"city_table ({tnote})"
+            city, tier, src, city_src = table_city, 1, f"city_table ({tnote})", "city_table"
         elif llm_city:
-            city, tier, src = (llm_t1 or llm_city), (1 if llm_t1 else 2), "llm (high)"
+            city, tier, src, city_src = (llm_t1 or llm_city), (1 if llm_t1 else 2), "llm (high)", "memo_llm"
     c.facts["hotel"] = {"city": city, "tier": tier, "source": src}
+    c.facts["sources"]["city"] = city_src
     if city is None:
         c.rule("HOTEL_CITY_KNOWN", "gap", "hotel city could not be determined" + (" (LLM unavailable)" if llm_failed else ""))
         c.gap("city", "Hotel limits depend on the city ($350/night in Tier-1 cities, $200/night elsewhere).")
@@ -333,8 +403,15 @@ def _hotel(exp, c, merchant, memo, note, amount_usd, llm_facts, llm_failed):
         nights = int(nights) if nights not in (None, "") else None
     except (TypeError, ValueError):
         nights = None
-    nights = nights or normalize.nights_from_text(f"{memo} {note}") or (llm_facts or {}).get("nights")
+    nights_src = given_by(exp, "nights") if nights else None
+    if not nights:
+        nights = normalize.nights_from_text(f"{memo} {note}")
+        nights_src = "memo_keyword" if nights else None
+    if not nights:
+        nights = (llm_facts or {}).get("nights")
+        nights_src = "memo_llm" if nights else None
     c.facts["hotel"]["nights"] = nights
+    c.facts["sources"]["nights"] = nights_src
     if amount_usd is None:
         c.rule(rid, "gap", "USD amount unknown")
         return
