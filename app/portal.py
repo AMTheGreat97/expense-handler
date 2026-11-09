@@ -55,7 +55,8 @@ def _check(values):
     """(expense, code-only preview payload, missing required labels)."""
     exp = form.form_expense(values)
     p = PIPE.preview(exp)
-    return exp, p, form.missing_required(values, amount_usd=p["facts"].get("amount_usd"))
+    return exp, p, form.missing_required(values, amount_usd=p["facts"].get("amount_usd"),
+                                         engine_gaps=p.get("missing_fields") or ())
 
 
 def preview(*args):

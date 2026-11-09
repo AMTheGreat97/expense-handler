@@ -91,6 +91,31 @@ class RequiredFields(unittest.TestCase):
         self.assertEqual(p["decision"], "flag")
         self.assertIn("nights", p["missing_fields"])
 
+    def test_invalid_date_blocks_submit(self):
+        self.assertIn("Date (use YYYY-MM-DD)", form.missing_required(values(date="17th June"), amount_usd=50))
+
+    def test_fx_failure_makes_card_usd_amount_required(self):
+        v = values(currency="EUR")
+        self.assertEqual(form.missing_required(v, amount_usd=55), [])
+        m = form.missing_required(v, amount_usd=None, engine_gaps=["amount_usd"])
+        self.assertTrue(any(x.startswith("USD amount on your card statement") for x in m))
+        self.assertEqual(form.missing_required(values(currency="EUR", amount_usd=55), amount_usd=55,
+                                               engine_gaps=["amount_usd"]), [])
+
+    def test_complete_portal_form_never_flags_for_a_missing_fact(self):
+        """Audit: a fully filled form leaves the engine nothing to ask (only conflicts / LLM outage remain)."""
+        cases = [values(amount=88, client_business=True, client_name="Acme Corp", memo="dinner w/ Acme Corp"),
+                 values(amount=88), values(category="Entertainment", amount=60, memo="team dinner"),
+                 values(category="Hotel", amount=500, city="Other", city_other="Des Moines", nights=3, memo="stay"),
+                 values(category="Hotel", amount=700, city="Boston", nights=2, memo="stay"),
+                 values(category="Software", amount=16, approval_code="SW-42", memo="Notion seat", receipt=False),
+                 values(category="Office", amount=84, memo="monitor stand"),
+                 values(date="2026-06-20", amount=25, memo="team dinner")]
+        for v in cases:
+            self.assertEqual(form.missing_required(v, amount_usd=float(v["amount"])), [], v)
+            p = run_form(**{k: v[k] for k in v})
+            self.assertNotEqual(p["decision"], "flag", (v, p["missing_fields"]))
+
     def test_entertainment_without_client_box_warns(self):
         self.assertTrue(form.warnings(values(category="Entertainment")))
         self.assertFalse(form.warnings(values(category="Entertainment", client_business=True)))

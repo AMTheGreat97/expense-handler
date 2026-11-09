@@ -53,17 +53,26 @@ def _blank(v):
     return v is None or (isinstance(v, str) and not v.strip())
 
 
-def missing_required(values, amount_usd=None):
+def missing_required(values, amount_usd=None, engine_gaps=()):
     """Labels of required fields that are empty or invalid. Empty list = OK to submit.
 
-    amount_usd: the converted amount (from the code-only preview) for the receipt rule.
+    amount_usd:  the converted amount (from the code-only preview) for the receipt rule.
+    engine_gaps: the preview's missing_fields; if the live FX lookup failed ("amount_usd"),
+                 the optional card-statement USD amount becomes required.
     """
     missing = []
     for r in config.FORM_REQUIREMENTS:
         f, kind = r["field"], r["required"]
-        if not visible(f, values) or kind == "optional":
+        if not visible(f, values):
             continue
         v = values.get(f)
+        if kind == "optional":
+            if f == "amount_usd" and "amount_usd" in engine_gaps and _blank(v):
+                missing.append(r["label"] + " (the currency conversion is unavailable right now)")
+            continue
+        if f == "date" and not _blank(v) and normalize.parse_date(v)[1]:
+            missing.append(r["label"] + " (use YYYY-MM-DD)")
+            continue
         if kind == "if_over_receipt_threshold":
             if amount_usd is not None and amount_usd > config.RECEIPT_THRESHOLD_USD and not v:
                 missing.append(r["label"])

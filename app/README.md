@@ -1,4 +1,4 @@
-# Expense Auto-Approver (app/)
+﻿# Expense Auto-Approver (app/)
 
 The rules decide approve / reject / flag. The LLM (DeepSeek Flash via OpenRouter) only **reads the memo for facts** and returns them with a confidence label and a quoted piece of evidence. Every decision is POSTed, stored and logged, and lists every rule it checked.
 
@@ -15,7 +15,7 @@ python mock_server.py                 # terminal 1: Finance's endpoint on :8000
 python -m app.batch                   # terminal 2: decide + POST data/pending_expenses.json
 python -m app.evaluate                # replay 20 past + 18 pending vs agreed outcomes (no POST)
 python -m app.portal                  # Gradio portal on http://127.0.0.1:7870 (override with PORTAL_PORT)
-python -m unittest discover -s app/tests -t .   # 52 tests (rules + portal form), stub LLM, no network
+python -m unittest discover -s app/tests -t .   # 55 tests (rules + portal form), stub LLM, no network
 python -m app.evaluate --stub         # same eval with canned LLM answers, no network
 ```
 
