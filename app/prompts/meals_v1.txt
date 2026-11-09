@@ -1,4 +1,5 @@
 CATEGORY-SPECIFIC TASK: MEAL / ENTERTAINMENT
+Treat "internal clients" and "in-house customers" as UNCLEAR unless a later answer explicitly resolves who attended. Generic drinks alone do not establish alcohol. Preserve distinctions such as soft drinks, no alcohol, and non-alcoholic beer.
 Your main job is the CLIENT CHECK: who attended?
 
 - "CLIENT": the memo names a specific EXTERNAL organization AND it is clear they are a customer/client of ours. Use "high" only when both the name and the client relationship are clear.

@@ -105,7 +105,9 @@ _NIGHTS = re.compile(rf"\b{_NIGHT_NUM}[\s-]*nights?\b", re.I)
 _RANGE = re.compile(rf"\b{_NIGHT_NUM}\s*(?:-|–|—|to|or|/|\+)\s*{_NIGHT_NUM}[\s-]*nights?\b", re.I)
 _VAGUE = re.compile(r"(?:\b(?:couple|few|several|some|many|multiple|a\s+number)\s+(?:of\s+)?nights?\b"
                     rf"|(?:\babout|\baround|\bapprox(?:\.|imately)?|\broughly|~)\s*{_NIGHT_NUM}[\s-]*nights?\b"
-                    rf"|\b{_NIGHT_NUM}\s*\+?\s*ish[\s-]*nights?\b)", re.I)
+                    rf"|\b{_NIGHT_NUM}\s*\+?\s*ish[\s-]*nights?\b"
+                    rf"|\b(?:maybe|possibly|at least|up to|not)\s+{_NIGHT_NUM}[\s-]*nights?\b"
+                    rf"|\b{_NIGHT_NUM}[\s-]*nights?\s*\?|[.\-]\d+\s*nights?\b)", re.I)
 
 
 def _night_num(tok):

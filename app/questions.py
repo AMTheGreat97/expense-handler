@@ -31,7 +31,8 @@ def build(exp, facts, gaps):
         gid = g["id"]
         if gid == "receipt":
             fields.append({"name": "receipt", "type": "confirm", "label": "I have attached the receipt"})
-            asks.append(f"Please attach the receipt. {g['reason']}")
+            asks.append(g["reason"] + (" Please attach it." if facts.get("amount_usd") is not None
+                                        and facts["amount_usd"] > config.RECEIPT_THRESHOLD_USD else ""))
         elif gid == "category":
             fields.append({"name": "category", "type": "choice", "options": config.ALLOWED_CATEGORIES,
                            "prefill": g.get("suggestion")})
@@ -42,12 +43,23 @@ def build(exp, facts, gaps):
             asks.append("What category is this expense (e.g. Lunch, Dinner, Office, Hotel, Software)? "
                         "If it was a meal or entertainment, tell us whether it was internal or with a client, "
                         "and name the client company.")
+            if not exp.get("approval_code"):
+                fields.append({"name": "approval_code", "type": "text", "optional": True})
+                asks.append("If Software, include the approval code.")
+            if not exp.get("city"):
+                fields.append({"name": "city", "type": "choice_or_text", "options": TIER1_CHOICES + ["Other (type it)"],
+                               "optional": True})
+                asks.append("If Hotel, include the city of the stay.")
+            if not exp.get("nights") and (facts.get("amount_usd") is None or
+                                          facts["amount_usd"] > config.HOTEL_CAP_TIER2_USD):
+                fields.append({"name": "nights", "type": "number", "optional": True})
+                asks.append("If Hotel, include the exact billed nights if the total exceeds the city's nightly cap.")
         elif gid == "attendee":
             fields.append({"name": "attendee_type", "type": "choice", "options": ATTENDEE_OPTIONS})
             fields.append({"name": "client_name", "type": "text", "prefill": g.get("llm_client_name"),
                            "label": "Client company name (required if Client)"})
             who = f" Was {g['llm_client_name']} a client?" if g.get("llm_client_name") else ""
-            asks.append(f"Who attended: only our employees, or a client?{who} If a client, please name the "
+            asks.append(f"Who attended: coworkers only, an external customer, or a vendor/partner?{who} If a customer, please name the "
                         f"company. ({g['reason']})")
         elif gid == "alcohol":
             fields.append({"name": "alcohol_declared", "type": "choice", "options": ALCOHOL_OPTIONS})
@@ -81,13 +93,13 @@ def build(exp, facts, gaps):
     fields.append({"name": "employee_note", "type": "text", "optional": True,
                    "label": "Anything else we should know? (optional)"})
 
-    intro = f"To finish reviewing your {_describe(exp, facts)}"
+    intro = f"To finish reviewing expense {exp.get('id') or '(ID missing)'} ({_describe(exp, facts)})"
     if len(asks) == 1:
         text = f"{intro}, we need one thing: {asks[0]}"
     else:
         text = f"{intro}, we need the following (please answer all in one reply):\n" + \
                "\n".join(f"{i}. {a}" for i, a in enumerate(asks, 1))
-    return {"text": text, "fields": fields}
+    return {"text": text, "fields": list({f["name"]: f for f in fields}.values())}
 
 
 def apply_answers(expense, answers):
@@ -100,6 +112,8 @@ def apply_answers(expense, answers):
         exp["alcohol_declared"] = a["alcohol_declared"] in (True, ALCOHOL_OPTIONS[0], "yes", "true")
     if a.get("receipt") in (True, "true", "yes"):
         exp["receipt"] = True
+    elif a.get("receipt") in (False, "false", "no"):
+        exp["receipt"] = False
     if "category" in a:
         exp["category"] = a["category"]
     if "attendee_type" in a:

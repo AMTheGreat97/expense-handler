@@ -17,12 +17,14 @@ Facts from the LLM only count at HIGH confidence (client also needs a name).
 """
 
 import re
+import math
+from decimal import Decimal
 from datetime import datetime, timezone
 
 from . import cities, config, extract, normalize, questions, security
 
 ALCOHOL_WORDS = re.compile(
-    r"\b(beers?|wines?|drinks?|cocktails?|alcohol|booze|whiske?y|vodka|tequila|gin|rum|"
+    r"\b(beers?|wines?|cocktails?|alcohol|booze|whiske?y|vodka|tequila|gin|rum|"
     r"champagne|prosecco|margaritas?|ipas?|pints?|sake|spirits|bar\s+tab)\b", re.I)
 
 
@@ -174,6 +176,9 @@ def decide(expense, llm, fx, use_llm=True):
         elif exp.get("amount_usd") not in (None, ""):
             try:
                 amount_usd = round(float(exp["amount_usd"]), 2)
+                if not math.isfinite(amount_usd) or amount_usd <= 0:
+                    amount_usd = None
+                    raise ValueError("invalid USD amount")
                 c.rule("FX_CONVERSION", "pass", f"employee provided USD amount {_money(amount_usd)}")
             except (TypeError, ValueError):
                 pass
@@ -217,12 +222,20 @@ def decide(expense, llm, fx, use_llm=True):
 
     # Never let a structured field silently override a contradicting memo.
     client_conflict = _attendee_conflict(attendee, a_source, llm_facts)
+    if ("attendee_type" not in (exp.get("answered_fields") or [])
+            and re.search(r"\b(?:internal|in[- ]house)\s+(?:clients?|customers?)\b", f"{memo} {note}", re.I)):
+        client_conflict = (None, "The wording could mean coworkers or an external customer")
     if client_conflict:
         conflict_name, conflict_detail = client_conflict
         attendee, client_name, a_detail = "unknown", conflict_name, conflict_detail
 
-    alcohol_kw = bool(ALCOHOL_WORDS.search(f"{memo} {note}"))
-    alcohol_llm = bool(llm_facts and llm_facts["alcohol_mentioned"])
+    drink_text = re.sub(r"\b(?:soft drinks?|non[- ]alcoholic (?:beers?|wines?|drinks?)|no alcohol)\b",
+                        "", f"{memo} {note}", flags=re.I)
+    alcohol_kw = bool(ALCOHOL_WORDS.search(drink_text))
+    generic_drinks = bool(re.search(r"\bdrinks?\b", drink_text, re.I))
+    alcohol_llm = bool(llm_facts and llm_facts["alcohol_mentioned"]
+                       and (llm_facts.get("alcohol_evidence") or "").strip()
+                       and llm_facts["alcohol_evidence"].lower() in drink_text.lower())
     memo_alcohol = alcohol_kw or alcohol_llm
     memo_alc_src = "memo_keyword" if alcohol_kw else ("memo_llm" if alcohol_llm else None)
     declared = exp.get("alcohol_declared")
@@ -264,9 +277,11 @@ def decide(expense, llm, fx, use_llm=True):
                 c.gap("receipt", "Receipts are required for any expense over $25.00.")
         else:
             c.rule("RECEIPT_REQUIRED", "n/a", f"{_money(amount_usd)} <= $25.00")
+            if receipt is None:
+                c.gap("receipt", "Please confirm whether a receipt is attached (yes or no).")
     elif receipt is not True:
         c.rule("RECEIPT_REQUIRED", "gap", "USD amount unknown and no receipt")
-        c.gap("receipt", "Receipts are required for any expense over $25.00.")
+        c.gap("receipt", "If the corrected USD amount is above $25, attach the receipt.")
 
     def need_client(reason):
         if attendee == "unknown":
@@ -278,6 +293,9 @@ def decide(expense, llm, fx, use_llm=True):
 
     # ---- Global alcohol rule (any category) ---------------------------------
     alcohol_blocked = False
+    if generic_drinks and not alcohol_kw and declared is None and attendee != "client":
+        alcohol_conflict = "The memo says drinks. Were any alcoholic?"
+        need_client("If alcohol was included, confirm who attended.")
     if alcohol_conflict:
         if attendee == "client":
             alcohol = False   # alcohol is fine with a confirmed client either way
@@ -302,6 +320,8 @@ def decide(expense, llm, fx, use_llm=True):
         rid = f"MEAL_CAP_{category.upper()}"
         over = amount_usd is not None and amount_usd > cap
         weekend = c.facts["is_weekend"]
+        if d is None or amount_usd is None:
+            need_client("If the corrected date is a weekend or the amount exceeds the meal cap, who attended?")
         if amount_usd is None:
             c.rule(rid, "gap", "USD amount unknown")
         elif not over:
@@ -394,18 +414,16 @@ def _hotel(exp, c, merchant, memo, note, amount_usd, llm_facts, llm_failed):
     if city is None:
         c.rule("HOTEL_CITY_KNOWN", "gap", "hotel city could not be determined" + (" (LLM unavailable)" if llm_failed else ""))
         c.gap("city", "Hotel limits depend on the city ($350/night in Tier-1 cities, $200/night elsewhere).")
-        return
-    c.rule("HOTEL_CITY_KNOWN", "pass", f"{city} -> Tier {tier} via {src}")
+    else:
+        c.rule("HOTEL_CITY_KNOWN", "pass", f"{city} -> Tier {tier} via {src}")
     cap = config.HOTEL_CAP_TIER1_USD if tier == 1 else config.HOTEL_CAP_TIER2_USD
     rid = f"HOTEL_CAP_TIER{tier}"
     nights = exp.get("nights")
-    try:
-        nights = int(nights) if nights not in (None, "") else None
-    except (TypeError, ValueError):
-        nights = None
+    invalid_nights = nights not in (None, "") and not re.fullmatch(r"[1-9]\d{0,5}", str(nights))
+    nights = int(nights) if nights not in (None, "") and not invalid_nights else None
     nights_src = given_by(exp, "nights") if nights else None
     nights_unknown_why = None
-    if not nights:
+    if not nights and not invalid_nights:
         # Memo / answer text: only ONE unambiguous statement counts. Never guess the denominator.
         text = f"{memo} {note}"
         kw_n, kw_status, kw_quote = normalize.parse_nights(text)
@@ -423,6 +441,10 @@ def _hotel(exp, c, merchant, memo, note, amount_usd, llm_facts, llm_failed):
             c.notes.append(nights_unknown_why)
     c.facts["hotel"]["nights"] = nights
     c.facts["sources"]["nights"] = nights_src
+    if nights is None and (invalid_nights or amount_usd is None or (city is None and amount_usd > cap)):
+        c.gap("nights", "Please confirm the exact positive whole number of nights on this charge.")
+    if city is None:
+        return
     if amount_usd is None:
         c.rule(rid, "gap", "USD amount unknown")
         return
@@ -435,10 +457,10 @@ def _hotel(exp, c, merchant, memo, note, amount_usd, llm_facts, llm_failed):
         c.gap("nights", f"We need the exact number of nights to check the {_money(cap)}/night limit.")
         return
     per_night = round(amount_usd / max(nights, 1), 2)
-    if per_night <= cap:
+    if Decimal(str(amount_usd)) <= Decimal(str(cap)) * nights:
         c.rule(rid, "pass", f"{_money(per_night)}/night x {nights} <= {_money(cap)}/night ({city})")
     else:
-        c.rule(rid, "fail", f"{_money(per_night)}/night > {_money(cap)}/night ({city}, Tier {tier})")
+        c.rule(rid, "fail", f"{_money(amount_usd)} total exceeds {nights} nights x {_money(cap)} ({city}, Tier {tier})")
 
 
 def _reason(decision, c):

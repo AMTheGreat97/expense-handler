@@ -124,7 +124,9 @@ ANSWER_FIELDS = ["category", "attendee_type", "client_name", "alcohol_declared",
 
 
 def open_choices():
-    return gr.update(choices=[f["expense_id"] for f in PIPE.store.open_followups()], value=None)
+    return gr.update(choices=[f["expense_id"] for f in PIPE.store.open_followups()
+                              if PIPE.store.latest_decision(f["expense_id"])["payload"]["routed_to"] == "employee"],
+                     value=None)
 
 
 def load_followup(expense_id):
@@ -145,7 +147,7 @@ def load_followup(expense_id):
             continue
         prefill = fld.get("prefill")
         if name == "receipt":
-            prefill = False
+            prefill = None
         elif prefill is None and name in exp and name not in ("employee_note",):
             prefill = exp.get(name)
         updates.append(gr.update(visible=True, value=prefill))
@@ -262,7 +264,7 @@ def build():
                 gr.Textbox(label="Corrected amount", visible=False),
                 gr.Textbox(label="Corrected date (YYYY-MM-DD)", visible=False),
                 gr.Textbox(label="Your name", visible=False),
-                gr.Checkbox(label="I have attached the receipt", visible=False),
+                gr.Radio(["yes", "no"], value=None, label="Receipt attached?", visible=False),
                 gr.Textbox(label="Anything else we should know? (optional)", visible=False, lines=2),
             ]
             a_city_other = gr.Textbox(label="City name", visible=False)
