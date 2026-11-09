@@ -404,12 +404,23 @@ def _hotel(exp, c, merchant, memo, note, amount_usd, llm_facts, llm_failed):
     except (TypeError, ValueError):
         nights = None
     nights_src = given_by(exp, "nights") if nights else None
+    nights_unknown_why = None
     if not nights:
-        nights = normalize.nights_from_text(f"{memo} {note}")
-        nights_src = "memo_keyword" if nights else None
-    if not nights:
-        nights = (llm_facts or {}).get("nights")
-        nights_src = "memo_llm" if nights else None
+        # Memo / answer text: only ONE unambiguous statement counts. Never guess the denominator.
+        text = f"{memo} {note}"
+        kw_n, kw_status, kw_quote = normalize.parse_nights(text)
+        llm_n = (llm_facts or {}).get("nights")
+        if kw_status == "ambiguous":
+            nights_unknown_why = f"nights ambiguous in memo ({kw_quote!r})"
+        elif kw_status == "found":
+            nights, nights_src = kw_n, "memo_keyword"
+            if llm_n and llm_n != kw_n:
+                nights, nights_src = None, None
+                nights_unknown_why = f"memo says {kw_quote!r} but LLM read nights={llm_n}"
+        elif llm_n:
+            nights_unknown_why = f"LLM nights={llm_n} not verified in memo"
+        if nights_unknown_why:
+            c.notes.append(nights_unknown_why)
     c.facts["hotel"]["nights"] = nights
     c.facts["sources"]["nights"] = nights_src
     if amount_usd is None:
@@ -419,8 +430,9 @@ def _hotel(exp, c, merchant, memo, note, amount_usd, llm_facts, llm_failed):
         if amount_usd <= cap:
             c.rule(rid, "pass", f"{_money(amount_usd)} <= {_money(cap)}/night even for 1 night")
             return
-        c.rule(rid, "gap", f"{_money(amount_usd)} total, nights unknown")
-        c.gap("nights", f"We need the number of nights to check the {_money(cap)}/night limit.")
+        why = f" ({nights_unknown_why})" if nights_unknown_why else ""
+        c.rule(rid, "gap", f"{_money(amount_usd)} total, nights unknown{why}")
+        c.gap("nights", f"We need the exact number of nights to check the {_money(cap)}/night limit.")
         return
     per_night = round(amount_usd / max(nights, 1), 2)
     if per_night <= cap:

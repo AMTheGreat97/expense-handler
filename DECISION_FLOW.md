@@ -130,7 +130,7 @@ A **blank memo never calls the LLM**. Code sets `attendee_type = NONE`, which me
 
 | Category | Extracts | Notes |
 |---|---|---|
-| Hotel | `city`, `nights` | "Return the city named in the merchant or memo. Do not map neighborhoods or suburbs to a bigger city." The result goes through the Tier-1 table (§5). |
+| Hotel | `city`, `nights` | "Return the city named in the merchant or memo. Do not map neighborhoods or suburbs to a bigger city." The result goes through the Tier-1 table (§5). **Nights fail closed:** code (`normalize.parse_nights`) accepts only one unambiguous "N night(s)" (digits or one..fourteen). Ranges, vague words, or several numbers mean unknown. The LLM's `nights` is used only if code found the same number in the text, otherwise unknown with a trace note. Unknown + total over the 1-night cap → ask. |
 | Software | `product`, `seats` | For the log only. The approval-code rule is pure code. |
 | Office / Transport / Airfare | `description`, `alcohol_mentioned` | Minimal. Spots alcohol and category mismatches. |
 | Missing category | `suggested_category` | Only used to **prefill** the follow-up form. It never makes the decision. |

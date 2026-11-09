@@ -98,7 +98,43 @@ def approval_code_ok(raw):
     return isinstance(raw, str) and len(raw.strip()) > 1
 
 
+NUMBER_WORDS = {"one": 1, "two": 2, "three": 3, "four": 4, "five": 5, "six": 6, "seven": 7, "eight": 8,
+                 "nine": 9, "ten": 10, "eleven": 11, "twelve": 12, "thirteen": 13, "fourteen": 14}
+_NIGHT_NUM = r"(\d{1,2}|" + "|".join(NUMBER_WORDS) + r")"
+_NIGHTS = re.compile(rf"\b{_NIGHT_NUM}[\s-]*nights?\b", re.I)
+_RANGE = re.compile(rf"\b{_NIGHT_NUM}\s*(?:-|–|—|to|or|/|\+)\s*{_NIGHT_NUM}[\s-]*nights?\b", re.I)
+_VAGUE = re.compile(r"(?:\b(?:couple|few|several|some|many|multiple|a\s+number)\s+(?:of\s+)?nights?\b"
+                    rf"|(?:\babout|\baround|\bapprox(?:\.|imately)?|\broughly|~)\s*{_NIGHT_NUM}[\s-]*nights?\b"
+                    rf"|\b{_NIGHT_NUM}\s*\+?\s*ish[\s-]*nights?\b)", re.I)
+
+
+def _night_num(tok):
+    tok = tok.lower()
+    return NUMBER_WORDS.get(tok) or int(tok)
+
+
+def parse_nights(text):
+    """Return (nights, status, quote). status: 'found' | 'none' | 'ambiguous'.
+
+    Only an exact, single statement counts: '2 nights', 'two nights', '1-night'.
+    Ranges ('2-3 nights', '2 or 3 nights'), vague words ('a couple of nights')
+    and several different numbers ('2 nights ... 3 nights') are ambiguous, so the
+    hotel cap can't be checked and we ask. We never guess the denominator.
+    """
+    text = text or ""
+    m = _RANGE.search(text) or _VAGUE.search(text)
+    if m:
+        return None, "ambiguous", m.group(0)
+    found = [(_night_num(m.group(1)), m.group(0)) for m in _NIGHTS.finditer(text)]
+    values = {n for n, _ in found}
+    if len(values) > 1:
+        return None, "ambiguous", "; ".join(q for _, q in found)
+    if values:
+        n = values.pop()
+        return (n, "found", found[0][1]) if n >= 1 else (None, "ambiguous", found[0][1])
+    return None, "none", None
+
+
 def nights_from_text(text):
-    """'1 night', '3 nights' -> int, else None."""
-    m = re.search(r"\b(\d{1,2})\s*nights?\b", text or "", re.I)
-    return int(m.group(1)) if m else None
+    """'1 night', 'three nights' -> int; ambiguous or absent -> None."""
+    return parse_nights(text)[0]
