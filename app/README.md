@@ -15,7 +15,7 @@ python mock_server.py                 # terminal 1: Finance's endpoint on :8000
 python -m app.batch                   # terminal 2: decide + POST data/pending_expenses.json
 python -m app.evaluate                # replay 20 past + 18 pending vs agreed outcomes (no POST)
 python -m app.portal                  # Gradio portal on http://127.0.0.1:7870 (override with PORTAL_PORT)
-python -m unittest discover -s app/tests -t .   # 30 rule tests, stub LLM, no network
+python -m unittest discover -s app/tests -t .   # 52 tests (rules + portal form), stub LLM, no network
 python -m app.evaluate --stub         # same eval with canned LLM answers, no network
 ```
 
@@ -30,6 +30,7 @@ python -m app.evaluate --stub         # same eval with canned LLM answers, no ne
 | `llm.py` | OpenRouter client, strict schema validation, one retry; `StubLLM` for tests |
 | `extract.py` | picks the category prompt, wraps untrusted text in tags, **verifies evidence quotes** |
 | `cities.py` | Tier-1 city table (8 main cities + short forms only) |
+| `form.py` | portal form → expense, driven by `config.FORM_REQUIREMENTS` (visibility, required fields, attestation checkboxes) |
 | `fx.py` | live FX (historical rate on the expense date); failure means we ask for USD |
 | `engine.py` | **the rulebook as code**: S0 to S6, returns payload + rule-by-rule trace |
 | `questions.py` | one combined follow-up question from the gap list (text + form fields); merges answers |
