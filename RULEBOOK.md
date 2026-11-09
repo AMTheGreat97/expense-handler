@@ -147,7 +147,7 @@ Each category lists **(a)** what must be known (if missing → FLAG in S4) and *
 | Must know | A receipt. The city. The number of nights if the amount is over $200 and the nights aren't known. |
 | Check | **Tier 1: New York, Los Angeles, San Francisco, Washington DC, Seattle, Chicago, Boston, London.** The cap is **$350/night**. All other cities have a cap of **$200/night**. Over the cap → REJECT. [CONFIRMED] |
 | City matching | Only the 8 main cities count. Different ways of writing the city name match: "NYC"/"New York", "LA"/"Los Angeles", "SF", "DC"/"Washington D.C.". **Neighborhoods and nearby cities do not count** (e.g. Santa Monica, Jersey City, Oakland, Arlington VA, Hollywood), so they get the $200 cap. If we can't tell the city → FLAG and ask. [CONFIRMED] |
-| Nights | The cap is per night (total ÷ nights). Nights count only when stated **unambiguously** ("2 nights", "two nights", or the portal's Nights field). Ranges ("2-3 nights"), vague words ("a couple of nights", "about 3"), two different numbers, or an AI number not written in the memo → nights unknown → if the total is over the 1-night cap, FLAG and ask. We never guess the denominator. |
+| Nights | The cap is per night (total ÷ nights). Nights count only when stated **unambiguously** ("2 nights", "two nights", or the portal's check-in/check-out dates, which give nights = check-out − check-in). Ranges ("2-3 nights"), vague words ("a couple of nights", "about 3"), two different numbers, or an AI number not written in the memo → nights unknown → if the total is over the 1-night cap, FLAG and ask. We never guess the denominator. |
 | Override | A client does not lift the hotel cap. The weekend rule doesn't apply. |
 
 ### Software

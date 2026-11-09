@@ -87,7 +87,10 @@ FORM_REQUIREMENTS = [
     {"field": "city", "label": "Hotel city", "engine_key": "city", "categories": ["Hotel"], "required": "always"},
     {"field": "city_other", "label": "City name", "engine_key": "city", "categories": ["Hotel"],
      "required": "if_shown", "show_if": ("city", "Other")},
-    {"field": "nights", "label": "Nights (whole number, at least 1)", "engine_key": "nights",
+    # Nights are never typed: the portal derives them from the stay dates (check-out minus check-in).
+    {"field": "check_in", "label": "Check-in date", "engine_key": "nights",
+     "categories": ["Hotel"], "required": "always"},
+    {"field": "check_out", "label": "Check-out date", "engine_key": "nights",
      "categories": ["Hotel"], "required": "always"},
     {"field": "approval_code", "label": "Software approval code", "engine_key": "approval_code",
      "categories": ["Software"], "required": "always"},

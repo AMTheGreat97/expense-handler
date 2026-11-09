@@ -17,10 +17,16 @@ class FrankfurterFX:
     def __init__(self, base_url=None, timeout=10):
         self.base_url = (base_url or config.FX_URL).rstrip("/")
         self.timeout = timeout
+        self._cache = {}  # dated path -> payload; the portal's live preview re-runs on every keystroke
 
     def _get(self, path):
+        if path in self._cache:
+            return self._cache[path]
         with urllib.request.urlopen(f"{self.base_url}/{path}", timeout=self.timeout) as r:
-            return json.loads(r.read())
+            data = json.loads(r.read())
+        if not path.startswith("latest"):  # a historical rate never changes
+            self._cache[path] = data
+        return data
 
     def to_usd(self, amount, currency, on_date):
         """Return dict(rate, rate_date, source, amount_usd) or dict(error=...)."""

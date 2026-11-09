@@ -239,10 +239,10 @@ A rejected expense stays rejected. If the employee resubmits it with new informa
 | All | employee, date, category, merchant, amount + currency, memo (brief description), receipt (when the USD amount is over $25), USD amount on card statement (optional, non-USD only) |
 | Breakfast / Lunch / Dinner / Entertainment | "Client business" checkbox; client company name (required if checked); "Includes alcohol" checkbox |
 | Entertainment | as above; the preview warns that it's rejected without client business |
-| Hotel | city (8 Tier-1 cities or Other + typed name); nights (whole number ≥ 1) |
+| Hotel | city (8 Tier-1 cities or Other + typed name); check-in and check-out dates (nights = check-out − check-in, so check-out must be after check-in; nobody types a night count) |
 | Software | approval code |
 
-- **Submit is blocked** until every required field is filled ("Please fill: …"). Nothing is run, POSTed or stored, so the portal produces no avoidable flags. In batch, the same gaps still become follow-up questions.
+- **Submit is blocked** until every required field is filled and valid (the portal lists each one with the reason, e.g. "Date (can't be in the future)"). Nothing is run, POSTed or stored, so the portal produces no avoidable flags. In batch, the same gaps still become follow-up questions.
 - **Checkbox = attestation.** Unchecked "Client business" means the employee says it was internal. Checked + name means a client. Approvals that rely on this are tagged `approved_on_employee_attestation`.
 - **Alcohol** = the checkbox, OR an alcohol keyword in the memo, OR the LLM.
 - **Contradictions are asked, never overridden.** The LLM still reads the portal memo. If the form says internal but the memo names a client at high confidence (`ATTESTATION_CONFLICT_CLIENT`), or the form says no alcohol but the memo mentions it (`ATTESTATION_CONFLICT_ALCOHOL`), we FLAG with a question about the contradiction. As everywhere else, we only ask when it changes the outcome: an under-cap weekday lunch is fine either way. Once the employee answers, the answer counts.
