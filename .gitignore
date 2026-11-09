@@ -1,0 +1,17 @@
+# secrets
+.env
+.env.*
+# take-home materials (not ours to publish)
+/PROMPT.md
+/README.md
+/data/
+/mock_server.py
+/starter.py
+/requirements.txt
+/Priyas meeting notes/
+/received_decisions.jsonl
+# runtime output
+/logs/
+__pycache__/
+*.pyc
+.venv/
