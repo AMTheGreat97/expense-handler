@@ -1,6 +1,6 @@
 """Employee portal (Gradio). Uses the SAME Pipeline as the batch run.
 
-    python -m app.portal        # http://127.0.0.1:7860
+    python -m app.portal        # http://127.0.0.1:7870 (set PORTAL_PORT to change)
 
 Tabs
   1. Submit expense   - form or JSON upload; live preview while typing (code-only,
@@ -260,4 +260,7 @@ def build():
 
 
 if __name__ == "__main__":
-    build().launch()
+    import os
+
+    port = int(os.environ.get("PORTAL_PORT", "7870"))
+    build().launch(server_name="127.0.0.1", server_port=port)

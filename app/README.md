@@ -14,7 +14,7 @@ pip install -r app/requirements.txt
 python mock_server.py                 # terminal 1: Finance's endpoint on :8000
 python -m app.batch                   # terminal 2: decide + POST data/pending_expenses.json
 python -m app.evaluate                # replay 20 past + 18 pending vs agreed outcomes (no POST)
-python -m app.portal                  # Gradio portal on http://127.0.0.1:7860
+python -m app.portal                  # Gradio portal on http://127.0.0.1:7870 (override with PORTAL_PORT)
 python -m unittest discover -s app/tests -t .   # 30 rule tests, stub LLM, no network
 python -m app.evaluate --stub         # same eval with canned LLM answers, no network
 ```
